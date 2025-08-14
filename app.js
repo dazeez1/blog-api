@@ -5,6 +5,8 @@ const rateLimit = require("express-rate-limit");
 
 // Import routes
 const authRoutes = require("./routes/auth");
+const postRoutes = require("./routes/posts");
+const commentRoutes = require("./routes/comments");
 
 const app = express();
 
@@ -34,6 +36,12 @@ app.use("/api/", limiter);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+// Import sanitization middleware
+const { sanitizeInput } = require("./middleware/validate");
+
+// Apply sanitization middleware globally
+app.use(sanitizeInput);
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -45,6 +53,8 @@ app.get("/health", (req, res) => {
 
 // API routes
 app.use("/api/auth", authRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/comments", commentRoutes);
 
 // 404 handler
 app.use("*", (req, res) => {
