@@ -1,58 +1,58 @@
-const express = require("express");
-const { body } = require("express-validator");
-const { protect } = require("../middleware/auth");
-const { handleValidationErrors } = require("../middleware/validate");
+const express = require('express');
+const { body } = require('express-validator');
+const { protect } = require('../middleware/auth');
+const { handleValidationErrors } = require('../middleware/validate');
 const {
   signup,
   login,
   getMe,
   updateProfile,
-} = require("../controllers/userController");
+} = require('../controllers/userController');
 
 const router = express.Router();
 
 // Validation rules
 const signupValidation = [
-  body("name")
+  body('name')
     .trim()
     .isLength({ min: 2, max: 50 })
-    .withMessage("Name must be between 2 and 50 characters"),
-  body("email")
+    .withMessage('Name must be between 2 and 50 characters'),
+  body('email')
     .isEmail()
     .normalizeEmail()
-    .withMessage("Please provide a valid email"),
-  body("password")
+    .withMessage('Please provide a valid email'),
+  body('password')
     .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
+    .withMessage('Password must be at least 6 characters long'),
 ];
 
 const loginValidation = [
-  body("email")
+  body('email')
     .isEmail()
     .normalizeEmail()
-    .withMessage("Please provide a valid email"),
-  body("password").notEmpty().withMessage("Password is required"),
+    .withMessage('Please provide a valid email'),
+  body('password').notEmpty().withMessage('Password is required'),
 ];
 
 const updateProfileValidation = [
-  body("name")
+  body('name')
     .optional()
     .trim()
     .isLength({ min: 2, max: 50 })
-    .withMessage("Name must be between 2 and 50 characters"),
-  body("email")
+    .withMessage('Name must be between 2 and 50 characters'),
+  body('email')
     .optional()
     .isEmail()
     .normalizeEmail()
-    .withMessage("Please provide a valid email"),
+    .withMessage('Please provide a valid email'),
 ];
 
 // Routes
-router.post("/signup", signupValidation, handleValidationErrors, signup);
-router.post("/login", loginValidation, handleValidationErrors, login);
-router.get("/me", protect, getMe);
+router.post('/signup', signupValidation, handleValidationErrors, signup);
+router.post('/login', loginValidation, handleValidationErrors, login);
+router.get('/me', protect, getMe);
 router.put(
-  "/me",
+  '/me',
   protect,
   updateProfileValidation,
   handleValidationErrors,

@@ -1,5 +1,5 @@
-const Post = require("../models/Post");
-const User = require("../models/User");
+const Post = require('../models/Post');
+const User = require('../models/User');
 
 // @desc    Create a new post
 // @route   POST /api/posts
@@ -16,18 +16,18 @@ const createPost = async (req, res) => {
     });
 
     // Populate author details
-    await post.populate("author", "name email");
+    await post.populate('author', 'name email');
 
     res.status(201).json({
       success: true,
-      message: "Post created successfully",
+      message: 'Post created successfully',
       data: { post },
     });
   } catch (error) {
-    console.error("Create post error:", error);
+    console.error('Create post error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -44,8 +44,8 @@ const getPosts = async (req, res) => {
       author,
       tags,
       search,
-      sortBy = "createdAt",
-      sortOrder = "desc",
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
     } = req.query;
 
     // Build query
@@ -55,8 +55,8 @@ const getPosts = async (req, res) => {
     if (author) {
       const authorUser = await User.findOne({
         $or: [
-          { name: { $regex: author, $options: "i" } },
-          { email: { $regex: author, $options: "i" } },
+          { name: { $regex: author, $options: 'i' } },
+          { email: { $regex: author, $options: 'i' } },
         ],
       });
       if (authorUser) {
@@ -66,7 +66,7 @@ const getPosts = async (req, res) => {
 
     // Filter by tags
     if (tags) {
-      const tagArray = tags.split(",").map((tag) => tag.trim().toLowerCase());
+      const tagArray = tags.split(',').map(tag => tag.trim().toLowerCase());
       query.tags = { $in: tagArray };
     }
 
@@ -77,7 +77,7 @@ const getPosts = async (req, res) => {
 
     // Build sort object
     const sortOptions = {};
-    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
+    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     // Calculate pagination
     const pageNum = parseInt(page);
@@ -87,7 +87,7 @@ const getPosts = async (req, res) => {
     // Execute query with pagination
     const [posts, total] = await Promise.all([
       Post.find(query)
-        .populate("author", "name email")
+        .populate('author', 'name email')
         .sort(sortOptions)
         .skip(skip)
         .limit(limitNum)
@@ -115,10 +115,10 @@ const getPosts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get posts error:", error);
+    console.error('Get posts error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -130,13 +130,13 @@ const getPosts = async (req, res) => {
 const getPost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
-      .populate("author", "name email")
+      .populate('author', 'name email')
       .populate({
-        path: "comments",
+        path: 'comments',
         match: { isActive: true },
         populate: {
-          path: "author",
-          select: "name email",
+          path: 'author',
+          select: 'name email',
         },
         options: { sort: { createdAt: -1 } },
       });
@@ -144,14 +144,17 @@ const getPost = async (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: "Post not found",
+        message: 'Post not found',
       });
     }
 
-    if (!post.isPublished && (!req.user || req.user.id !== post.author._id.toString())) {
+    if (
+      !post.isPublished &&
+      (!req.user || req.user.id !== post.author._id.toString())
+    ) {
       return res.status(404).json({
         success: false,
-        message: "Post not found",
+        message: 'Post not found',
       });
     }
 
@@ -164,10 +167,10 @@ const getPost = async (req, res) => {
       data: { post },
     });
   } catch (error) {
-    console.error("Get post error:", error);
+    console.error('Get post error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -185,15 +188,15 @@ const updatePost = async (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: "Post not found",
+        message: 'Post not found',
       });
     }
 
     // Check if user is authorized to update
-    if (post.author.toString() !== req.user.id && req.user.role !== "admin") {
+    if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to update this post",
+        message: 'Not authorized to update this post',
       });
     }
 
@@ -208,18 +211,18 @@ const updatePost = async (req, res) => {
         new: true,
         runValidators: true,
       }
-    ).populate("author", "name email");
+    ).populate('author', 'name email');
 
     res.status(200).json({
       success: true,
-      message: "Post updated successfully",
+      message: 'Post updated successfully',
       data: { post: updatedPost },
     });
   } catch (error) {
-    console.error("Update post error:", error);
+    console.error('Update post error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -235,15 +238,15 @@ const deletePost = async (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: "Post not found",
+        message: 'Post not found',
       });
     }
 
     // Check if user is authorized to delete
-    if (post.author.toString() !== req.user.id && req.user.role !== "admin") {
+    if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to delete this post",
+        message: 'Not authorized to delete this post',
       });
     }
 
@@ -251,13 +254,13 @@ const deletePost = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Post deleted successfully",
+      message: 'Post deleted successfully',
     });
   } catch (error) {
-    console.error("Delete post error:", error);
+    console.error('Delete post error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -276,7 +279,7 @@ const getMyPosts = async (req, res) => {
 
     const [posts, total] = await Promise.all([
       Post.find({ author: req.user.id })
-        .populate("author", "name email")
+        .populate('author', 'name email')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -303,10 +306,10 @@ const getMyPosts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get my posts error:", error);
+    console.error('Get my posts error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -319,4 +322,4 @@ module.exports = {
   updatePost,
   deletePost,
   getMyPosts,
-}; 
+};

@@ -1,22 +1,22 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema(
   {
     content: {
       type: String,
-      required: [true, "Comment content is required"],
+      required: [true, 'Comment content is required'],
       trim: true,
-      minlength: [1, "Comment cannot be empty"],
-      maxlength: [1000, "Comment cannot exceed 1000 characters"],
+      minlength: [1, 'Comment cannot be empty'],
+      maxlength: [1000, 'Comment cannot exceed 1000 characters'],
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     post: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Post",
+      ref: 'Post',
       required: true,
     },
     isActive: {
@@ -34,9 +34,9 @@ commentSchema.index({ post: 1, createdAt: -1 });
 commentSchema.index({ author: 1 });
 
 // Ensure author and post exist before saving
-commentSchema.pre("save", async function (next) {
-  const User = mongoose.model("User");
-  const Post = mongoose.model("Post");
+commentSchema.pre('save', async function (next) {
+  const User = mongoose.model('User');
+  const Post = mongoose.model('Post');
 
   try {
     const [user, post] = await Promise.all([
@@ -45,11 +45,11 @@ commentSchema.pre("save", async function (next) {
     ]);
 
     if (!user) {
-      throw new Error("Author not found");
+      throw new Error('Author not found');
     }
 
     if (!post) {
-      throw new Error("Post not found");
+      throw new Error('Post not found');
     }
 
     next();
@@ -58,4 +58,4 @@ commentSchema.pre("save", async function (next) {
   }
 });
 
-module.exports = mongoose.model("Comment", commentSchema); 
+module.exports = mongoose.model('Comment', commentSchema);

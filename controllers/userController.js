@@ -1,10 +1,10 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 // Generate JWT Token
-const generateToken = (id) => {
+const generateToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 };
 
@@ -20,7 +20,7 @@ const signup = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "User with this email already exists",
+        message: 'User with this email already exists',
       });
     }
 
@@ -36,7 +36,7 @@ const signup = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: 'User registered successfully',
       data: {
         user: {
           id: user._id,
@@ -48,10 +48,10 @@ const signup = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Signup error:", error);
+    console.error('Signup error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -65,12 +65,12 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     // Check if user exists and include password for comparison
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: 'Invalid credentials',
       });
     }
 
@@ -78,7 +78,7 @@ const login = async (req, res) => {
     if (!user.isActive) {
       return res.status(401).json({
         success: false,
-        message: "Account is deactivated",
+        message: 'Account is deactivated',
       });
     }
 
@@ -87,7 +87,7 @@ const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: 'Invalid credentials',
       });
     }
 
@@ -96,7 +96,7 @@ const login = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Login successful",
+      message: 'Login successful',
       data: {
         user: {
           id: user._id,
@@ -108,10 +108,10 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -137,10 +137,10 @@ const getMe = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get profile error:", error);
+    console.error('Get profile error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -154,8 +154,12 @@ const updateProfile = async (req, res) => {
     const { name, email } = req.body;
     const updateData = {};
 
-    if (name) updateData.name = name;
-    if (email) updateData.email = email;
+    if (name) {
+      updateData.name = name;
+    }
+    if (email) {
+      updateData.email = email;
+    }
 
     // Check if email is being updated and if it already exists
     if (email && email !== req.user.email) {
@@ -163,7 +167,7 @@ const updateProfile = async (req, res) => {
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: "Email already in use",
+          message: 'Email already in use',
         });
       }
     }
@@ -175,7 +179,7 @@ const updateProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Profile updated successfully",
+      message: 'Profile updated successfully',
       data: {
         user: {
           id: user._id,
@@ -186,10 +190,10 @@ const updateProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Update profile error:", error);
+    console.error('Update profile error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }

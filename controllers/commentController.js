@@ -1,5 +1,5 @@
-const Comment = require("../models/Comment");
-const Post = require("../models/Post");
+const Comment = require('../models/Comment');
+const Post = require('../models/Post');
 
 // @desc    Add comment to a post
 // @route   POST /api/posts/:postId/comments
@@ -14,14 +14,14 @@ const addComment = async (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: "Post not found",
+        message: 'Post not found',
       });
     }
 
     if (!post.isPublished) {
       return res.status(404).json({
         success: false,
-        message: "Post not found",
+        message: 'Post not found',
       });
     }
 
@@ -32,18 +32,18 @@ const addComment = async (req, res) => {
     });
 
     // Populate author details
-    await comment.populate("author", "name email");
+    await comment.populate('author', 'name email');
 
     res.status(201).json({
       success: true,
-      message: "Comment added successfully",
+      message: 'Comment added successfully',
       data: { comment },
     });
   } catch (error) {
-    console.error("Add comment error:", error);
+    console.error('Add comment error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -62,7 +62,7 @@ const getComments = async (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: "Post not found",
+        message: 'Post not found',
       });
     }
 
@@ -75,7 +75,7 @@ const getComments = async (req, res) => {
         post: postId,
         isActive: true,
       })
-        .populate("author", "name email")
+        .populate('author', 'name email')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -105,10 +105,10 @@ const getComments = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get comments error:", error);
+    console.error('Get comments error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -127,7 +127,7 @@ const updateComment = async (req, res) => {
     if (!comment) {
       return res.status(404).json({
         success: false,
-        message: "Comment not found",
+        message: 'Comment not found',
       });
     }
 
@@ -135,7 +135,7 @@ const updateComment = async (req, res) => {
     if (comment.author.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to update this comment",
+        message: 'Not authorized to update this comment',
       });
     }
 
@@ -146,18 +146,18 @@ const updateComment = async (req, res) => {
         new: true,
         runValidators: true,
       }
-    ).populate("author", "name email");
+    ).populate('author', 'name email');
 
     res.status(200).json({
       success: true,
-      message: "Comment updated successfully",
+      message: 'Comment updated successfully',
       data: { comment: updatedComment },
     });
   } catch (error) {
-    console.error("Update comment error:", error);
+    console.error('Update comment error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -175,15 +175,18 @@ const deleteComment = async (req, res) => {
     if (!comment) {
       return res.status(404).json({
         success: false,
-        message: "Comment not found",
+        message: 'Comment not found',
       });
     }
 
     // Check if user is authorized to delete
-    if (comment.author.toString() !== req.user.id && req.user.role !== "admin") {
+    if (
+      comment.author.toString() !== req.user.id &&
+      req.user.role !== 'admin'
+    ) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to delete this comment",
+        message: 'Not authorized to delete this comment',
       });
     }
 
@@ -193,13 +196,13 @@ const deleteComment = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Comment deleted successfully",
+      message: 'Comment deleted successfully',
     });
   } catch (error) {
-    console.error("Delete comment error:", error);
+    console.error('Delete comment error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -221,8 +224,8 @@ const getMyComments = async (req, res) => {
         author: req.user.id,
         isActive: true,
       })
-        .populate("author", "name email")
-        .populate("post", "title")
+        .populate('author', 'name email')
+        .populate('post', 'title')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -252,10 +255,10 @@ const getMyComments = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get my comments error:", error);
+    console.error('Get my comments error:', error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error',
       error: error.message,
     });
   }
@@ -267,4 +270,4 @@ module.exports = {
   updateComment,
   deleteComment,
   getMyComments,
-}; 
+};

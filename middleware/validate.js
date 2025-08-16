@@ -1,4 +1,4 @@
-const { validationResult } = require("express-validator");
+const { validationResult } = require('express-validator');
 
 // Middleware to handle validation errors
 const handleValidationErrors = (req, res, next) => {
@@ -7,8 +7,8 @@ const handleValidationErrors = (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      message: "Validation failed",
-      errors: errors.array().map((error) => ({
+      message: 'Validation failed',
+      errors: errors.array().map(error => ({
         field: error.path,
         message: error.msg,
         value: error.value,
@@ -23,12 +23,12 @@ const handleValidationErrors = (req, res, next) => {
 const sanitizeInput = (req, res, next) => {
   // Sanitize body
   if (req.body) {
-    Object.keys(req.body).forEach((key) => {
-      if (typeof req.body[key] === "string") {
+    Object.keys(req.body).forEach(key => {
+      if (typeof req.body[key] === 'string') {
         req.body[key] = req.body[key]
-          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-          .replace(/javascript:/gi, "")
-          .replace(/on\w+\s*=/gi, "")
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/javascript:/gi, '')
+          .replace(/on\w+\s*=/gi, '')
           .trim();
       }
     });
@@ -36,12 +36,12 @@ const sanitizeInput = (req, res, next) => {
 
   // Sanitize query parameters
   if (req.query) {
-    Object.keys(req.query).forEach((key) => {
-      if (typeof req.query[key] === "string") {
+    Object.keys(req.query).forEach(key => {
+      if (typeof req.query[key] === 'string') {
         req.query[key] = req.query[key]
-          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-          .replace(/javascript:/gi, "")
-          .replace(/on\w+\s*=/gi, "")
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/javascript:/gi, '')
+          .replace(/on\w+\s*=/gi, '')
           .trim();
       }
     });

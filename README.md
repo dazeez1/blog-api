@@ -99,24 +99,24 @@ npm run dev
 
 ### Post Endpoints
 
-| Method | Endpoint                    | Description                           | Access  |
-| ------ | --------------------------- | ------------------------------------- | ------- |
-| POST   | `/api/posts`                | Create a new post                     | Private |
-| GET    | `/api/posts`                | Get all posts with pagination/filter  | Public  |
-| GET    | `/api/posts/my-posts`       | Get current user's posts              | Private |
-| GET    | `/api/posts/:id`            | Get a specific post                   | Public  |
-| PUT    | `/api/posts/:id`            | Update a post (owner/admin only)      | Private |
-| DELETE | `/api/posts/:id`            | Delete a post (owner/admin only)      | Private |
+| Method | Endpoint              | Description                          | Access  |
+| ------ | --------------------- | ------------------------------------ | ------- |
+| POST   | `/api/posts`          | Create a new post                    | Private |
+| GET    | `/api/posts`          | Get all posts with pagination/filter | Public  |
+| GET    | `/api/posts/my-posts` | Get current user's posts             | Private |
+| GET    | `/api/posts/:id`      | Get a specific post                  | Public  |
+| PUT    | `/api/posts/:id`      | Update a post (owner/admin only)     | Private |
+| DELETE | `/api/posts/:id`      | Delete a post (owner/admin only)     | Private |
 
 ### Comment Endpoints
 
-| Method | Endpoint                           | Description                           | Access  |
-| ------ | ---------------------------------- | ------------------------------------- | ------- |
-| POST   | `/api/comments/posts/:postId/comments` | Add comment to a post              | Private |
-| GET    | `/api/comments/posts/:postId/comments` | Get comments for a post            | Public  |
-| GET    | `/api/comments/my-comments`        | Get current user's comments           | Private |
-| PUT    | `/api/comments/:id`                | Update a comment (owner only)         | Private |
-| DELETE | `/api/comments/:id`                | Delete a comment (owner/admin only)   | Private |
+| Method | Endpoint                               | Description                         | Access  |
+| ------ | -------------------------------------- | ----------------------------------- | ------- |
+| POST   | `/api/comments/posts/:postId/comments` | Add comment to a post               | Private |
+| GET    | `/api/comments/posts/:postId/comments` | Get comments for a post             | Public  |
+| GET    | `/api/comments/my-comments`            | Get current user's comments         | Private |
+| PUT    | `/api/comments/:id`                    | Update a comment (owner only)       | Private |
+| DELETE | `/api/comments/:id`                    | Delete a comment (owner/admin only) | Private |
 
 ### Health Check
 
@@ -320,19 +320,23 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## Query Parameters for Posts
 
 ### Pagination
+
 - `page` (default: 1) - Page number
 - `limit` (default: 10) - Items per page
 
 ### Filtering
+
 - `author` - Filter by author name or email
 - `tags` - Filter by tags (comma-separated)
 - `search` - Full-text search in title and content
 
 ### Sorting
+
 - `sortBy` (default: "createdAt") - Sort field (title, createdAt, viewCount)
 - `sortOrder` (default: "desc") - Sort order (asc, desc)
 
 ### Example Queries
+
 ```
 GET /api/posts?page=1&limit=5&tags=blog,tutorial&search=javascript&sortBy=createdAt&sortOrder=desc
 GET /api/posts?author=john&page=2&limit=20
