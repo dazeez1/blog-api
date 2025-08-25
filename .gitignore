@@ -45,3 +45,6 @@ pids/
 # Test results
 test-results/
 coverage/
+
+# Database seeding scripts
+seed-database.js

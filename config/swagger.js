@@ -17,7 +17,7 @@ const options = {
         description: 'Production server',
       },
       {
-        url: 'http://localhost:5000',
+        url: 'http://localhost:5001',
         description: 'Local development server',
       },
     ],
@@ -33,14 +33,6 @@ const options = {
     security: [{ bearerAuth: [] }],
   },
   apis: ['routes/*.js', 'controllers/*.js'],
-  swaggerDefinition: {
-    swagger: '2.0',
-    info: {
-      title: 'Blog API',
-      version: '1.0.0',
-      description: 'A feature-rich RESTful API for a modern blogging platform',
-    },
-  },
 };
 
 const swaggerSpec = swaggerJSDoc(options);

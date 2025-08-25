@@ -117,11 +117,12 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec, {
     swaggerOptions: {
-      defaultModelsExpandDepth: -1,
-      docExpansion: 'none',
+      defaultModelsExpandDepth: 1,
+      docExpansion: 'list',
       filter: true,
       showRequestHeaders: false,
       showResponseHeaders: false,
+      tryItOutEnabled: true,
     },
   })
 );
