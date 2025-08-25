@@ -38,7 +38,7 @@ The Blog API powers blogging platforms with comprehensive content management cap
 ### Prerequisites
 
 - Node.js (v18 or higher)
-- MongoDB (v6 or higher)
+- MongoDB Atlas account
 - npm (v9 or higher)
 
 ### Installation
@@ -64,7 +64,7 @@ PORT=5000
 NODE_ENV=development
 
 # Database Configuration
-MONGODB_URI=mongodb://localhost:27017/blogdb
+MONGODB_URI=your_mongodb_atlas_connection_string
 
 # JWT Configuration
 JWT_SECRET=your_super_secret_jwt_key_here
@@ -85,6 +85,17 @@ npm run dev
 ```
 
 5. Open your browser and navigate to `http://localhost:5000`
+
+### API Documentation
+
+The API documentation is available via Swagger UI at:
+
+- **Local**: `http://localhost:5000/api-docs`
+- **Features**:
+  - Interactive API testing
+  - Request/response examples
+  - Authentication with JWT tokens
+  - All endpoints documented with schemas
 
 ## API Endpoints
 
@@ -123,6 +134,12 @@ npm run dev
 | Method | Endpoint  | Description       |
 | ------ | --------- | ----------------- |
 | GET    | `/health` | API health status |
+
+### API Documentation
+
+| Method | Endpoint    | Description          |
+| ------ | ----------- | -------------------- |
+| GET    | `/api-docs` | Swagger UI interface |
 
 ## Request/Response Examples
 
@@ -311,11 +328,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## Technologies Used
 
 - **Backend**: Node.js with Express.js
-- **Database**: MongoDB with Mongoose
+- **Database**: MongoDB Atlas with Mongoose
 - **Authentication**: JWT with bcrypt
 - **Validation**: Express-validator
 - **Security**: Helmet, CORS, Rate limiting, Input sanitization
 - **Testing**: Jest, Supertest
+- **Documentation**: Swagger UI with JSDoc
+- **Code Quality**: ESLint, Prettier
 
 ## Query Parameters for Posts
 
@@ -348,13 +367,15 @@ GET /api/posts?tags=react&sortBy=viewCount&sortOrder=desc
 ```
 blog-api/
 ├── config/
-│   └── database.js          # Database configuration
+│   ├── database.js          # Database configuration
+│   └── swagger.js           # Swagger API documentation config
 ├── controllers/
 │   ├── userController.js    # User authentication logic
 │   ├── postController.js    # Post CRUD operations
 │   └── commentController.js # Comment CRUD operations
 ├── middleware/
 │   ├── auth.js              # JWT authentication middleware
+│   ├── authorize.js         # Authorization middleware
 │   └── validate.js          # Input validation & sanitization
 ├── models/
 │   ├── User.js              # User data model
@@ -364,7 +385,17 @@ blog-api/
 │   ├── auth.js              # Authentication routes
 │   ├── posts.js             # Post routes
 │   └── comments.js          # Comment routes
+├── utils/
+│   ├── asyncHandler.js      # Async error handling wrapper
+│   ├── apiResponse.js       # Standardized API responses
+│   ├── pagination.js        # Pagination helpers
+│   └── postQuery.js         # Post filtering & sorting
+├── validators/
+│   ├── auth.js              # Authentication validations
+│   ├── posts.js             # Post validations
+│   └── comments.js          # Comment validations
 ├── tests/                   # Test files
+├── .github/workflows/       # CI/CD pipeline
 ├── app.js                   # Express app configuration
 ├── server.js                # Server entry point
 ├── package.json             # Dependencies and scripts
@@ -376,9 +407,13 @@ blog-api/
 - `npm start` - Start production server
 - `npm run dev` - Start development server with nodemon
 - `npm test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
 - `npm run lint` - Run ESLint
 - `npm run lint:fix` - Fix ESLint errors
 - `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+- `npm run ci` - Run full CI pipeline (lint, format, test, security)
 
 ## Author
 
