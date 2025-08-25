@@ -11,8 +11,14 @@ const options = {
     },
     servers: [
       {
-        url: process.env.SWAGGER_SERVER_URL || 'http://localhost:5000',
-        description: 'Local server',
+        url:
+          process.env.SWAGGER_SERVER_URL ||
+          'https://blog-api-3pxs.onrender.com',
+        description: 'Production server',
+      },
+      {
+        url: 'http://localhost:5000',
+        description: 'Local development server',
       },
     ],
     components: {

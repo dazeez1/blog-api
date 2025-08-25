@@ -13,11 +13,39 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
+// Handle preflight requests
+app.options('*', cors());
+
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      // Allow Swagger UI and common development origins
+      const allowedOrigins = [
+        'https://petstore.swagger.io',
+        'https://editor.swagger.io',
+        'http://localhost:3000',
+        'http://localhost:5000',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:5000',
+        process.env.CORS_ORIGIN,
+      ].filter(Boolean);
+
+      if (
+        allowedOrigins.includes(origin) ||
+        process.env.NODE_ENV !== 'production'
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 
@@ -43,6 +71,29 @@ const { sanitizeInput } = require('./middleware/validate');
 app.use(sanitizeInput);
 
 // Health check endpoint
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Check if the API is running
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: API is running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ */
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
