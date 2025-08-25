@@ -35,14 +35,15 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - username
+ *               - name
  *               - email
  *               - password
  *             properties:
- *               username:
+ *               name:
  *                 type: string
- *                 minLength: 3
- *                 maxLength: 30
+ *                 minLength: 2
+ *                 maxLength: 50
+ *                 description: User's full name
  *               email:
  *                 type: string
  *                 format: email
@@ -148,16 +149,14 @@ router.get('/me', protect, getMe);
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               name:
  *                 type: string
- *                 minLength: 3
- *                 maxLength: 30
+ *                 minLength: 2
+ *                 maxLength: 50
+ *                 description: User's full name
  *               email:
  *                 type: string
  *                 format: email
- *               bio:
- *                 type: string
- *                 maxLength: 500
  *     responses:
  *       200:
  *         description: Profile updated successfully
