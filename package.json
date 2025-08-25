@@ -14,7 +14,6 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "type-check": "echo 'Type checking not configured for JavaScript'",
     "build:check": "node -c app.js && node -c server.js",
     "security:audit": "npm audit --audit-level=moderate",
     "security:fix": "npm audit fix",

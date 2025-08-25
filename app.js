@@ -112,15 +112,19 @@ app.use('/api/comments', commentRoutes);
 // Swagger docs
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  swaggerOptions: {
-    defaultModelsExpandDepth: -1,
-    docExpansion: 'none',
-    filter: true,
-    showRequestHeaders: false,
-    showResponseHeaders: false,
-  },
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      defaultModelsExpandDepth: -1,
+      docExpansion: 'none',
+      filter: true,
+      showRequestHeaders: false,
+      showResponseHeaders: false,
+    },
+  })
+);
 
 // 404 handler
 app.use('*', (req, res) => {
