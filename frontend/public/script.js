@@ -746,6 +746,8 @@ async function loadProfile() {
   showLoading();
 
   try {
+    console.log('Loading profile for user:', currentUser);
+    
     const [profileResponse, postsResponse] = await Promise.all([
       fetch(`${API_BASE_URL}/auth/me`, {
         headers: {
@@ -762,6 +764,9 @@ async function loadProfile() {
     const profileData = await profileResponse.json();
     const postsData = await postsResponse.json();
 
+    console.log('Profile API response:', profileData);
+    console.log('Posts API response:', postsData);
+
     if (profileData.success) {
       displayProfile(profileData.data);
     }
@@ -770,6 +775,7 @@ async function loadProfile() {
       displayMyPosts(postsData.data.posts);
     }
   } catch (error) {
+    console.error('Profile loading error:', error);
     showNotification('Failed to load profile', 'error');
   } finally {
     hideLoading();
@@ -778,20 +784,20 @@ async function loadProfile() {
 
 function displayProfile(user) {
   const profileInfo = document.getElementById('profileInfo');
+  if (!profileInfo) return;
 
+  // Use currentUser data if available, fallback to API data
+  const displayUser = currentUser || user;
+  
   profileInfo.innerHTML = `
         <h3>Profile Information</h3>
         <div class="profile-field">
             <label>Name</label>
-            <span class="profile-value">${user.name || 'Not provided'}</span>
+            <span class="profile-value">${displayUser.name || 'Not provided'}</span>
         </div>
         <div class="profile-field">
             <label>Email</label>
-            <span class="profile-value">${user.email || 'Not provided'}</span>
-        </div>
-        <div class="profile-field">
-            <label>Member Since</label>
-            <span class="profile-value">${formatDate(user.createdAt)}</span>
+            <span class="profile-value">${displayUser.email || 'Not provided'}</span>
         </div>
     `;
 }
