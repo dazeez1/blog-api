@@ -1,29 +1,99 @@
-// Configuration with fallback
-const API_BASE_URL = (window.BlogHubConfig && window.BlogHubConfig.API_BASE_URL) || 'https://blog-api-es4r.onrender.com/api';
-
-// Fallback configuration if config.js fails to load
-if (!window.BlogHubConfig) {
-  window.BlogHubConfig = {
-    API_BASE_URL: API_BASE_URL
-  };
-}
+// BlogHub Frontend - Working Version
+console.log('Script.js loaded');
 
 let currentUser = null;
 let currentPostId = null;
 let currentPage = 1;
-let postsPerPage = 6;
+const postsPerPage = 6;
 
-// DOM Elements
-const authBtn = document.getElementById('authBtn');
-const authModal = document.getElementById('authModal');
-const postModal = document.getElementById('postModal');
-const postDetailModal = document.getElementById('postDetailModal');
-const createPostBtn = document.getElementById('createPostBtn');
-const loadingSpinner = document.getElementById('loadingSpinner');
+// API Configuration
+const API_BASE_URL = (window.BlogHubConfig && window.BlogHubConfig.API_BASE_URL) || 'https://blog-api-es4r.onrender.com/api';
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, setting up event listeners...');
+  setupEventListeners();
+  initializeApp();
+});
+
+// Set up all event listeners
+function setupEventListeners() {
+  console.log('Setting up event listeners...');
+  
+  // Auth button
+  const authBtn = document.getElementById('authBtn');
+  if (authBtn) {
+    authBtn.addEventListener('click', function() {
+      if (currentUser) {
+        logout();
+      } else {
+        showAuthModal();
+      }
+    });
+    console.log('Auth button listener set up');
+  }
+
+  // Create post button
+  const createPostBtn = document.getElementById('createPostBtn');
+  if (createPostBtn) {
+    createPostBtn.addEventListener('click', function() {
+      showPostModal();
+    });
+    console.log('Create post button listener set up');
+  }
+
+  // Post form
+  const postForm = document.getElementById('postForm');
+  if (postForm) {
+    postForm.addEventListener('submit', handlePostSubmit);
+    console.log('Post form listener set up');
+  }
+
+  // Login form
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleLogin);
+    console.log('Login form listener set up');
+  }
+
+  // Signup form
+  const signupForm = document.getElementById('signupForm');
+  if (signupForm) {
+    signupForm.addEventListener('submit', handleSignup);
+    console.log('Signup form listener set up');
+  }
+
+  // Modal close buttons
+  document.querySelectorAll('.close').forEach(closeBtn => {
+    closeBtn.addEventListener('click', function() {
+      const modal = this.closest('.modal');
+      if (modal) modal.style.display = 'none';
+    });
+  });
+
+  // Auth tabs
+  document.querySelectorAll('.tab-btn').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const tabName = this.getAttribute('data-tab');
+      switchAuthTab(tabName);
+    });
+  });
+
+  // Navigation links
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const section = this.getAttribute('data-section');
+      showSection(section);
+    });
+  });
+
+  console.log('All event listeners set up');
+}
 
 // Initialize the application
 function initializeApp() {
-  // Check if user is already logged in
+  console.log('Initializing app...');
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user');
 
@@ -35,173 +105,81 @@ function initializeApp() {
   } else {
     updateUIForUnauthenticatedUser();
   }
+}
 
-  // Add event listeners
-  const postForm = document.getElementById('postForm');
-  if (postForm) {
-    postForm.addEventListener('submit', handlePostSubmit);
-  }
+// UI Updates
+function updateUIForAuthenticatedUser() {
+  const authBtn = document.getElementById('authBtn');
+  const createPostBtn = document.getElementById('createPostBtn');
   
-  // Add debug button for development
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    addDebugButton();
-  }
+  if (authBtn) authBtn.textContent = 'Logout';
+  if (createPostBtn) createPostBtn.style.display = 'inline-flex';
 }
 
-// Add the DOMContentLoaded event listener
-document.addEventListener('DOMContentLoaded', function () {
-  initializeApp();
-});
-
-function setupEventListeners() {
-  // Navigation
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const section = e.target.dataset.section;
-      showSection(section);
-    });
-  });
-
-  // Auth button
-  authBtn.addEventListener('click', () => {
-    if (currentUser) {
-      logout();
-    } else {
-      showAuthModal();
-    }
-  });
-
-  // Create post button
-  createPostBtn.addEventListener('click', () => {
-    showPostModal();
-  });
-
-  // Modal close buttons
-  document.querySelectorAll('.close').forEach(closeBtn => {
-    closeBtn.addEventListener('click', e => {
-      const modal = e.target.closest('.modal');
-      modal.style.display = 'none';
-    });
-  });
-
-  // Close modals when clicking outside
-  window.addEventListener('click', e => {
-    if (e.target.classList.contains('modal')) {
-      e.target.style.display = 'none';
-    }
-  });
-
-  // Auth tabs
-  document.querySelectorAll('.tab-btn').forEach(tab => {
-    tab.addEventListener('click', () => {
-      switchAuthTab(tab.dataset.tab);
-    });
-  });
-
-  // Auth forms
-  document.getElementById('loginForm').addEventListener('submit', handleLogin);
-  document
-    .getElementById('signupForm')
-    .addEventListener('submit', handleSignup);
-  document
-    .getElementById('postForm')
-    .addEventListener('submit', handlePostSubmit);
-}
-
-// Navigation
-function showSection(sectionName) {
-  // Hide all sections
-  document.querySelectorAll('.section').forEach(section => {
-    section.classList.remove('active');
-  });
-
-  // Show target section
-  document.getElementById(sectionName).classList.add('active');
-
-  // Update navigation
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.classList.remove('active');
-  });
-  document
-    .querySelector(`[data-section="${sectionName}"]`)
-    .classList.add('active');
-
-  // Load section-specific content
-  if (sectionName === 'posts') {
-    loadPosts();
-  } else if (sectionName === 'profile') {
-    if (currentUser) {
-      loadProfile();
-    } else {
-      showAuthModal();
-    }
-  }
+function updateUIForUnauthenticatedUser() {
+  const authBtn = document.getElementById('authBtn');
+  const createPostBtn = document.getElementById('createPostBtn');
+  
+  if (authBtn) authBtn.textContent = 'Login';
+  if (createPostBtn) createPostBtn.style.display = 'none';
 }
 
 // Authentication
 function showAuthModal() {
-  authModal.style.display = 'block';
-  switchAuthTab('login');
+  const authModal = document.getElementById('authModal');
+  if (authModal) {
+    authModal.style.display = 'block';
+    switchAuthTab('login');
+  }
 }
 
-function switchAuthTab(tab) {
+function switchAuthTab(tabName) {
   // Update tab buttons
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.remove('active');
   });
-  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
 
   // Update forms
   document.querySelectorAll('.auth-form').forEach(form => {
     form.classList.remove('active');
   });
-  document.getElementById(`${tab}Form`).classList.add('active');
+  document.getElementById(`${tabName}Form`).classList.add('active');
 }
 
 async function handleLogin(e) {
   e.preventDefault();
-  showLoading();
-
   const email = document.getElementById('loginEmail').value;
   const password = document.getElementById('loginPassword').value;
 
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
 
     const data = await response.json();
-
     if (data.success) {
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data.user));
-      currentUser = data.data.user;
-
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      currentUser = data.user;
       updateUIForAuthenticatedUser();
-      authModal.style.display = 'none';
-      showNotification('Login successful!', 'success');
-
-      // Clear form
-      document.getElementById('loginForm').reset();
+      loadPosts();
+      loadProfile();
+      document.getElementById('authModal').style.display = 'none';
+      alert('Login successful!');
     } else {
-      showNotification(data.message || 'Login failed', 'error');
+      alert(data.message || 'Login failed');
     }
   } catch (error) {
-    showNotification('An error occurred. Please try again.', 'error');
-  } finally {
-    hideLoading();
+    console.error('Login error:', error);
+    alert('Login failed. Please try again.');
   }
 }
 
 async function handleSignup(e) {
   e.preventDefault();
-  showLoading();
-
   const name = document.getElementById('signupName').value;
   const email = document.getElementById('signupEmail').value;
   const password = document.getElementById('signupPassword').value;
@@ -209,28 +187,20 @@ async function handleSignup(e) {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),
     });
 
     const data = await response.json();
-
     if (data.success) {
-      showNotification(
-        'Account created successfully! Please login.',
-        'success'
-      );
+      alert('Account created successfully! Please login.');
       switchAuthTab('login');
-      document.getElementById('signupForm').reset();
     } else {
-      showNotification(data.message || 'Signup failed', 'error');
+      alert(data.message || 'Signup failed');
     }
   } catch (error) {
-    showNotification('An error occurred. Please try again.', 'error');
-  } finally {
-    hideLoading();
+    console.error('Signup error:', error);
+    alert('Signup failed. Please try again.');
   }
 }
 
@@ -239,251 +209,141 @@ function logout() {
   localStorage.removeItem('user');
   currentUser = null;
   updateUIForUnauthenticatedUser();
-  showNotification('Logged out successfully', 'success');
   showSection('home');
 }
 
-function checkAuthStatus() {
-  const token = localStorage.getItem('token');
-  if (token) {
-    currentUser = JSON.parse(localStorage.getItem('user'));
-    updateUIForAuthenticatedUser();
-  }
-}
-
-function updateUIForAuthenticatedUser() {
-  authBtn.textContent = 'Logout';
-  createPostBtn.style.display = 'inline-flex';
-  
-  // Show refresh button for authenticated users
-  const refreshPostsBtn = document.getElementById('refreshPostsBtn');
-  if (refreshPostsBtn) {
-    refreshPostsBtn.style.display = 'inline-flex';
-  }
-}
-
-function updateUIForUnauthenticatedUser() {
-  authBtn.textContent = 'Login';
-  createPostBtn.style.display = 'none';
-  
-  // Hide refresh button for unauthenticated users
-  const refreshPostsBtn = document.getElementById('refreshPostsBtn');
-  if (refreshPostsBtn) {
-    refreshPostsBtn.style.display = 'none';
-  }
-}
-
-// Posts
+// Posts CRUD
 async function loadPosts(page = 1) {
-  showLoading();
   currentPage = page;
-
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/posts?page=${page}&limit=${postsPerPage}`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
+    const response = await fetch(`${API_BASE_URL}/posts?page=${page}&limit=${postsPerPage}`);
     const data = await response.json();
 
     if (data.success) {
-      // Handle different possible response structures
       const posts = data.data?.items || data.data?.posts || data.items || data.posts || data.data || [];
-      const pagination = data.data?.pagination || data.pagination || {};
-      
-      console.log('Posts API response:', data);
-      console.log('Posts data:', posts);
-      console.log('Pagination data:', pagination);
-      
-      if (Array.isArray(posts)) {
-        displayPosts(posts);
-        displayPagination(pagination);
-        debugPostsData(posts); // Add debug call here
-      } else {
-        console.error('Posts is not an array:', posts);
-        showNotification('Invalid posts data received', 'error');
-      }
-    } else {
-      console.error('Posts API error:', data);
-      showNotification(data.message || 'Failed to load posts', 'error');
+      displayPosts(posts);
+      displayPagination(data.data?.pagination || data.pagination || {});
     }
   } catch (error) {
-    console.error('Posts loading error:', error);
-    showNotification('An error occurred while loading posts', 'error');
-  } finally {
-    hideLoading();
+    console.error('Failed to load posts:', error);
   }
 }
 
 function displayPosts(posts) {
   const postsGrid = document.getElementById('postsGrid');
+  if (!postsGrid) return;
 
-  if (posts.length === 0) {
-    postsGrid.innerHTML =
-      '<div class="no-posts"><p>No posts found. Be the first to create one!</p></div>';
+  if (!posts || posts.length === 0) {
+    postsGrid.innerHTML = '<p>No posts found.</p>';
     return;
   }
 
-  postsGrid.innerHTML = posts
-    .map(
-      post => `
-        <div class="post-card" onclick="showPostDetail('${post._id}')">
-            <div class="post-header">
-                <h3 class="post-title">${post.title}</h3>
-                <div class="post-meta">
-                    <div class="post-author">
-                        <i class="fas fa-user"></i>
-                        <span>${post.author?.name || post.author?.email || 'Unknown Author'}</span>
-                    </div>
-                    <span>${formatDate(post.createdAt)}</span>
-                </div>
-            </div>
-            <div class="post-content">${post.content}</div>
-            ${
-              post.tags && post.tags.length > 0
-                ? `
-                <div class="post-tags">
-                    ${post.tags.map(tag => `<span class="post-tag">${tag}</span>`).join('')}
-                </div>
-            `
-                : ''
-            }
-        </div>
-    `
-    )
-    .join('');
+  postsGrid.innerHTML = posts.map(post => `
+    <div class="post-card" onclick="showPostDetail('${post._id}')">
+      <h3>${post.title || 'Untitled'}</h3>
+      <p>${post.content || 'No content'}</p>
+      <div class="post-meta">
+        <span>By: ${post.author?.name || post.author?.email || 'Unknown'}</span>
+        <span>${formatDate(post.createdAt)}</span>
+      </div>
+      ${post.tags && post.tags.length > 0 ? 
+        `<div class="tags">${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : 
+        ''
+      }
+    </div>
+  `).join('');
 }
 
 function displayPagination(pagination) {
   const paginationContainer = document.getElementById('pagination');
+  if (!paginationContainer) return;
+
   const { currentPage, totalPages, hasNextPage, hasPrevPage } = pagination;
+  let html = '';
 
-  let paginationHTML = '';
-
-  if (hasPrevPage) {
-    paginationHTML += `<button onclick="loadPosts(${currentPage - 1})">Previous</button>`;
-  }
-
+  if (hasPrevPage) html += `<button onclick="loadPosts(${currentPage - 1})">Previous</button>`;
   for (let i = 1; i <= totalPages; i++) {
-    if (i === currentPage) {
-      paginationHTML += `<button class="active">${i}</button>`;
-    } else {
-      paginationHTML += `<button onclick="loadPosts(${i})">${i}</button>`;
-    }
+    html += `<button ${i === currentPage ? 'class="active"' : ''} onclick="loadPosts(${i})">${i}</button>`;
   }
+  if (hasNextPage) html += `<button onclick="loadPosts(${currentPage + 1})">Next</button>`;
 
-  if (hasNextPage) {
-    paginationHTML += `<button onclick="loadPosts(${currentPage + 1})">Next</button>`;
-  }
-
-  paginationContainer.innerHTML = paginationHTML;
+  paginationContainer.innerHTML = html;
 }
 
-// Post Detail Functions
+// Post Detail and Actions
 async function showPostDetail(postId) {
-  currentPostId = postId; // Set the current post ID for comments
-  showLoading();
+  currentPostId = postId;
   try {
     const response = await fetch(`${API_BASE_URL}/posts/${postId}`);
     const data = await response.json();
 
     if (data.success) {
-      // Handle different possible response structures
       const post = data.data || data.post || data;
       displayPostDetail(post);
       loadComments(postId);
-      postDetailModal.style.display = 'block';
-    } else {
-      showNotification('Failed to load post details', 'error');
+      document.getElementById('postDetailModal').style.display = 'block';
     }
   } catch (error) {
-    console.error('Post detail loading error:', error);
-    showNotification('Failed to load post details', 'error');
-  } finally {
-    hideLoading();
+    console.error('Failed to load post:', error);
   }
 }
 
 function displayPostDetail(post) {
-  const postDetailContent = document.getElementById('postDetailContent');
+  const content = document.getElementById('postDetailContent');
+  if (!content) return;
 
-  postDetailContent.innerHTML = `
-        <div class="post-detail">
-            <h2>${post.title}</h2>
-            <div class="post-meta">
-                <div class="post-author">
-                    <i class="fas fa-user"></i>
-                    <span>${post.author?.name || post.author?.email || 'Unknown Author'}</span>
-                </div>
-                <span>${formatDate(post.createdAt)}</span>
-            </div>
-            <div class="post-content">${post.content}</div>
-            ${
-              post.tags && post.tags.length > 0
-                ? `
-                <div class="post-tags">
-                    ${post.tags.map(tag => `<span class="post-tag">${tag}</span>`).join('')}
-                </div>
-            `
-                : ''
-            }
-            ${
-              currentUser && post.author?._id === currentUser._id
-                ? `
-                <div class="post-actions">
-                    <button class="btn btn-primary" onclick="showPostModal('${post._id}')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="btn btn-danger" onclick="deletePost('${post._id}')">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-            `
-                : ''
-            }
-        </div>
-        <div class="comments-section">
-            <h3>Comments</h3>
-            ${
-              currentUser
-                ? `
-                <form class="comment-form" onsubmit="handleCommentSubmit(event)">
-                    <textarea placeholder="Write a comment..." required></textarea>
-                    <button type="submit" class="btn btn-primary">Post Comment</button>
-                </form>
-            `
-                : ''
-            }
-            <div id="commentsContainer">
-                <!-- Comments will be loaded here -->
-            </div>
-        </div>
-    `;
+  const isAuthor = currentUser && post.author?._id === currentUser._id;
+  
+  content.innerHTML = `
+    <h2>${post.title || 'Untitled'}</h2>
+    <p>${post.content || 'No content'}</p>
+    <div class="post-meta">
+      <span>By: ${post.author?.name || post.author?.email || 'Unknown'}</span>
+      <span>${formatDate(post.createdAt)}</span>
+    </div>
+    ${post.tags && post.tags.length > 0 ? 
+      `<div class="tags">${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : 
+      ''
+    }
+    ${isAuthor ? `
+      <div class="post-actions">
+        <button onclick="showPostModal('${post._id}')" class="btn btn-primary">Edit</button>
+        <button onclick="deletePost('${post._id}')" class="btn btn-danger">Delete</button>
+      </div>
+    ` : ''}
+    <div class="comments-section">
+      <h3>Comments</h3>
+      ${currentUser ? `
+        <form onsubmit="handleCommentSubmit(event)">
+          <textarea placeholder="Write a comment..." required></textarea>
+          <button type="submit">Post Comment</button>
+        </form>
+      ` : ''}
+      <div id="commentsContainer"></div>
+    </div>
+  `;
 }
 
 // Post Management
 function showPostModal(postId = null) {
   currentPostId = postId;
-  const modalTitle = document.getElementById('postModalTitle');
-  const postForm = document.getElementById('postForm');
+  const modal = document.getElementById('postModal');
+  const title = document.getElementById('postModalTitle');
+  const form = document.getElementById('postForm');
 
   if (postId) {
-    modalTitle.textContent = 'Edit Post';
-    // Load post data for editing
+    title.textContent = 'Edit Post';
     loadPostForEditing(postId);
   } else {
-    modalTitle.textContent = 'Create New Post';
-    postForm.reset();
+    title.textContent = 'Create Post';
+    form.reset();
   }
 
-  postModal.style.display = 'block';
+  modal.style.display = 'block';
 }
 
 function closePostModal() {
-  postModal.style.display = 'none';
+  document.getElementById('postModal').style.display = 'none';
   currentPostId = null;
 }
 
@@ -493,55 +353,34 @@ async function loadPostForEditing(postId) {
     const data = await response.json();
 
     if (data.success) {
-      const post = data.data;
-      document.getElementById('postTitle').value = post.title;
-      document.getElementById('postContent').value = post.content;
-      document.getElementById('postTags').value = post.tags
-        ? post.tags.join(', ')
-        : '';
+      const post = data.data || data.post || data;
+      document.getElementById('postTitle').value = post.title || '';
+      document.getElementById('postContent').value = post.content || '';
+      document.getElementById('postTags').value = post.tags ? post.tags.join(', ') : '';
     }
   } catch (error) {
-    showNotification('Failed to load post for editing', 'error');
+    console.error('Failed to load post for editing:', error);
   }
 }
 
 async function handlePostSubmit(e) {
   e.preventDefault();
-  showLoading();
-
   const title = document.getElementById('postTitle').value.trim();
   const content = document.getElementById('postContent').value.trim();
   const tagsInput = document.getElementById('postTags').value;
-  
-  // Better tags handling - ensure it's always an array
-  let tags = [];
-  if (tagsInput && tagsInput.trim()) {
-    tags = tagsInput
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0 && tag.length <= 20);
-  }
 
-  // Validation
-  if (!title || title.length < 3 || title.length > 200) {
-    showNotification('Title must be between 3 and 200 characters', 'error');
-    hideLoading();
+  if (!title || !content) {
+    alert('Title and content are required');
     return;
   }
 
-  if (!content || content.length < 10) {
-    showNotification('Content must be at least 10 characters long', 'error');
-    hideLoading();
-    return;
-  }
-
+  const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
   const postData = { title, content, tags };
-  const method = currentPostId ? 'PUT' : 'POST';
-  const url = currentPostId
-    ? `${API_BASE_URL}/posts/${currentPostId}`
-    : `${API_BASE_URL}/posts`;
 
   try {
+    const method = currentPostId ? 'PUT' : 'POST';
+    const url = currentPostId ? `${API_BASE_URL}/posts/${currentPostId}` : `${API_BASE_URL}/posts`;
+
     const response = await fetch(url, {
       method,
       headers: {
@@ -553,70 +392,50 @@ async function handlePostSubmit(e) {
 
     const data = await response.json();
 
-    if (response.ok && data.success) {
-      showNotification(
-        currentPostId
-          ? 'Post updated successfully!'
-          : 'Post created successfully!',
-        'success'
-      );
+    if (data.success) {
+      alert(currentPostId ? 'Post updated!' : 'Post created!');
       closePostModal();
       loadPosts(currentPage);
     } else {
-      // Better error handling
-      const errorMessage = data.message || data.error || `HTTP ${response.status}: ${response.statusText}`;
-      showNotification(errorMessage, 'error');
-      console.error('Post operation failed:', { status: response.status, data });
+      alert(data.message || 'Operation failed');
     }
   } catch (error) {
-    console.error('Post operation error:', error);
-    showNotification('An error occurred. Please try again.', 'error');
-  } finally {
-    hideLoading();
+    console.error('Post operation failed:', error);
+    alert('Operation failed. Please try again.');
   }
 }
 
 async function deletePost(postId) {
-  if (!confirm('Are you sure you want to delete this post?')) {
-    return;
-  }
-
-  showLoading();
+  if (!confirm('Delete this post?')) return;
 
   try {
     const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
 
     const data = await response.json();
 
     if (data.success) {
-      showNotification('Post deleted successfully!', 'success');
-      postDetailModal.style.display = 'none';
+      alert('Post deleted!');
+      document.getElementById('postDetailModal').style.display = 'none';
       loadPosts(currentPage);
     } else {
-      showNotification(data.message || 'Failed to delete post', 'error');
+      alert(data.message || 'Delete failed');
     }
   } catch (error) {
-    showNotification('An error occurred. Please try again.', 'error');
-  } finally {
-    hideLoading();
+    console.error('Delete failed:', error);
+    alert('Delete failed. Please try again.');
   }
 }
 
 // Comments
 async function loadComments(postId) {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/comments/posts/${postId}/comments`
-    );
+    const response = await fetch(`${API_BASE_URL}/comments/posts/${postId}/comments`);
     const data = await response.json();
 
     if (data.success) {
-      // Handle different possible response structures
       const comments = data.data?.comments || data.comments || data.data || [];
       displayComments(comments);
     }
@@ -626,81 +445,63 @@ async function loadComments(postId) {
 }
 
 function displayComments(comments) {
-  const commentsContainer = document.getElementById('commentsContainer');
+  const container = document.getElementById('commentsContainer');
+  if (!container) return;
 
-  if (comments.length === 0) {
-    commentsContainer.innerHTML =
-      '<p>No comments yet. Be the first to comment!</p>';
+  if (!comments || comments.length === 0) {
+    container.innerHTML = '<p>No comments yet.</p>';
     return;
   }
 
-  commentsContainer.innerHTML = comments
-    .map(
-      comment => `
-        <div class="comment">
-            <div class="comment-header">
-                <span class="comment-author">${comment.author?.name || comment.author?.email || 'Unknown User'}</span>
-                <span class="comment-date">${formatDate(comment.createdAt)}</span>
-            </div>
-            <div class="comment-content">${comment.content}</div>
-            ${
-              currentUser && comment.author._id === currentUser._id
-                ? `
-                <div class="comment-actions">
-                    <button class="btn btn-secondary" onclick="editComment('${comment._id}')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="btn btn-danger" onclick="deleteComment('${comment._id}')">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-            `
-                : ''
-            }
-        </div>
-    `
-    )
-    .join('');
+  container.innerHTML = comments.map(comment => `
+    <div class="comment">
+      <p>${comment.content}</p>
+      <div class="comment-meta">
+        <span>By: ${comment.author?.name || comment.author?.email || 'Unknown'}</span>
+        <span>${formatDate(comment.createdAt)}</span>
+        ${currentUser && comment.author?._id === currentUser._id ? `
+          <button onclick="editComment('${comment._id}')">Edit</button>
+          <button onclick="deleteComment('${comment._id}')">Delete</button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
 }
 
 async function handleCommentSubmit(e) {
   e.preventDefault();
-
   const textarea = e.target.querySelector('textarea');
   const content = textarea.value.trim();
 
   if (!content) return;
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/comments/posts/${currentPostId}/comments`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ content }),
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ content, postId: currentPostId }),
+    });
 
     const data = await response.json();
 
     if (data.success) {
       textarea.value = '';
       loadComments(currentPostId);
-      showNotification('Comment posted successfully!', 'success');
     } else {
-      showNotification(data.message || 'Failed to post comment', 'error');
+      alert(data.message || 'Comment failed');
     }
   } catch (error) {
-    showNotification('An error occurred. Please try again.', 'error');
+    console.error('Comment failed:', error);
+    alert('Comment failed. Please try again.');
   }
 }
 
 async function editComment(commentId) {
-  const newContent = prompt('Edit your comment:');
-  if (!newContent || newContent.trim() === '') return;
+  const newContent = prompt('Edit comment:');
+  if (!newContent) return;
 
   try {
     const response = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
@@ -709,45 +510,41 @@ async function editComment(commentId) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
-      body: JSON.stringify({ content: newContent.trim() }),
+      body: JSON.stringify({ content: newContent }),
     });
 
     const data = await response.json();
 
     if (data.success) {
       loadComments(currentPostId);
-      showNotification('Comment updated successfully!', 'success');
     } else {
-      showNotification(data.message || 'Failed to update comment', 'error');
+      alert(data.message || 'Edit failed');
     }
   } catch (error) {
-    showNotification('An error occurred. Please try again.', 'error');
+    console.error('Edit failed:', error);
+    alert('Edit failed. Please try again.');
   }
 }
 
 async function deleteComment(commentId) {
-  if (!confirm('Are you sure you want to delete this comment?')) {
-    return;
-  }
+  if (!confirm('Delete this comment?')) return;
 
   try {
     const response = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
 
     const data = await response.json();
 
     if (data.success) {
       loadComments(currentPostId);
-      showNotification('Comment deleted successfully!', 'success');
     } else {
-      showNotification(data.message || 'Failed to delete comment', 'error');
+      alert(data.message || 'Delete failed');
     }
   } catch (error) {
-    showNotification('An error occurred. Please try again.', 'error');
+    console.error('Delete failed:', error);
+    alert('Delete failed. Please try again.');
   }
 }
 
@@ -755,44 +552,21 @@ async function deleteComment(commentId) {
 async function loadProfile() {
   if (!currentUser) return;
 
-  showLoading();
-
   try {
-    console.log('Loading profile for user:', currentUser);
+    displayProfile(currentUser);
     
-    const [profileResponse, postsResponse] = await Promise.all([
-      fetch(`${API_BASE_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      }),
-      fetch(`${API_BASE_URL}/posts/my-posts`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      }),
-    ]);
+    const response = await fetch(`${API_BASE_URL}/posts/my-posts`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
 
-    const profileData = await profileResponse.json();
-    const postsData = await postsResponse.json();
+    const data = await response.json();
 
-    console.log('Profile API response:', profileData);
-    console.log('Posts API response:', postsData);
-
-    if (profileData.success) {
-      displayProfile(profileData.data);
-    }
-
-    if (postsData.success) {
-      // Handle different possible response structures for my posts
-      const myPosts = postsData.data?.posts || postsData.data?.items || postsData.data || [];
-      displayMyPosts(myPosts);
+    if (data.success) {
+      const posts = data.data?.posts || data.data?.items || data.data || [];
+      displayMyPosts(posts);
     }
   } catch (error) {
     console.error('Profile loading error:', error);
-    // No error popup - just log to console
-  } finally {
-    hideLoading();
   }
 }
 
@@ -800,20 +574,11 @@ function displayProfile(user) {
   const profileInfo = document.getElementById('profileInfo');
   if (!profileInfo) return;
 
-  // Use currentUser data if available, fallback to API data
-  const displayUser = currentUser || user;
-  
   profileInfo.innerHTML = `
-        <h3>Profile Information</h3>
-        <div class="profile-field">
-            <label>Name</label>
-            <span class="profile-value">${displayUser.name || 'Not provided'}</span>
-        </div>
-        <div class="profile-field">
-            <label>Email</label>
-            <span class="profile-value">${displayUser.email || 'Not provided'}</span>
-        </div>
-    `;
+    <h3>Profile</h3>
+    <p><strong>Name:</strong> ${user.name || 'Not provided'}</p>
+    <p><strong>Email:</strong> ${user.email || 'Not provided'}</p>
+  `;
 }
 
 function displayMyPosts(posts) {
@@ -821,230 +586,43 @@ function displayMyPosts(posts) {
   if (!myPosts) return;
 
   if (!posts || posts.length === 0) {
-    myPosts.innerHTML =
-      "<h3>My Posts</h3><p>You haven't created any posts yet.</p>";
+    myPosts.innerHTML = '<h3>My Posts</h3><p>No posts yet.</p>';
     return;
   }
 
   myPosts.innerHTML = `
-        <h3>My Posts</h3>
-        <div class="posts-grid">
-            ${posts
-              .map(
-                post => `
-                <div class="post-card" onclick="showPostDetail('${post._id}')">
-                    <div class="post-header">
-                        <h3 class="post-title">${post.title}</h3>
-                        <div class="post-meta">
-                            <span>${formatDate(post.createdAt)}</span>
-                        </div>
-                    </div>
-                    <div class="post-content">${post.content}</div>
-                    ${
-                      post.tags && post.tags.length > 0
-                        ? `
-                        <div class="post-tags">
-                            ${post.tags.map(tag => `<span class="post-tag">${tag}</span>`).join('')}
-                        </div>
-                    `
-                        : ''
-                    }
-                </div>
-            `
-              )
-              .join('')}
+    <h3>My Posts</h3>
+    <div class="posts-grid">
+      ${posts.map(post => `
+        <div class="post-card" onclick="showPostDetail('${post._id}')">
+          <h4>${post.title || 'Untitled'}</h4>
+          <p>${post.content || 'No content'}</p>
+          <span>${formatDate(post.createdAt)}</span>
         </div>
-    `;
+      `).join('')}
+    </div>
+  `;
 }
-
-// Profile update functionality removed - profile is now read-only
 
 // Utility Functions
 function formatDate(dateString) {
+  if (!dateString) return 'Unknown date';
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleDateString();
+}
+
+function showSection(sectionName) {
+  const sections = ['home', 'posts', 'profile'];
+  sections.forEach(section => {
+    const element = document.getElementById(section);
+    if (element) element.style.display = section === sectionName ? 'block' : 'none';
   });
+
+  if (sectionName === 'home') loadPosts();
+  if (sectionName === 'profile') loadProfile();
 }
 
-function showLoading() {
-  loadingSpinner.style.display = 'flex';
+// Test function
+function testClick() {
+  alert('JavaScript is working!');
 }
-
-function hideLoading() {
-  loadingSpinner.style.display = 'none';
-}
-
-function showNotification(message, type = 'info') {
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  notification.textContent = message;
-
-  // Add styles
-  notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        z-index: 4000;
-        animation: slideIn 0.3s ease;
-        max-width: 300px;
-    `;
-
-  // Set background color based on type
-  switch (type) {
-    case 'success':
-      notification.style.backgroundColor = '#10b981';
-      break;
-    case 'error':
-      notification.style.backgroundColor = '#ef4444';
-      break;
-    case 'warning':
-      notification.style.backgroundColor = '#f59e0b';
-      break;
-    default:
-      notification.style.backgroundColor = '#3b82f6';
-  }
-
-  // Add to page
-  document.body.appendChild(notification);
-
-  // Remove after 5 seconds
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 300);
-  }, 5000);
-}
-// Add CSS animations for notifications
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// Debug and Testing Functions
-function debugAPI() {
-  console.log('=== BlogHub API Debug Info ===');
-  console.log('API Base URL:', API_BASE_URL);
-  console.log('Current User:', currentUser);
-  console.log('Token:', localStorage.getItem('token') ? 'Present' : 'Missing');
-  console.log('User Data:', localStorage.getItem('user'));
-  
-  // Test API endpoints
-  testAPIEndpoints();
-}
-
-async function testAPIEndpoints() {
-  console.log('=== Testing API Endpoints ===');
-  
-  try {
-    // Test health endpoint
-    const healthResponse = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
-    console.log('Health Check:', healthResponse.status, healthResponse.statusText);
-    
-    // Test posts endpoint
-    const postsResponse = await fetch(`${API_BASE_URL}/posts?page=1&limit=5`);
-    console.log('Posts Endpoint:', postsResponse.status, postsResponse.statusText);
-    
-    if (postsResponse.ok) {
-      const postsData = await postsResponse.json();
-      console.log('Posts Data:', postsData);
-    }
-    
-    // Test auth endpoint if logged in
-    if (currentUser && localStorage.getItem('token')) {
-      const authResponse = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      console.log('Auth Endpoint:', authResponse.status, authResponse.statusText);
-    }
-    
-  } catch (error) {
-    console.error('API Test Error:', error);
-  }
-}
-
-// Add debug button to the page
-function addDebugButton() {
-  if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
-    const debugBtn = document.createElement('button');
-    debugBtn.textContent = '🐛 Debug API';
-    debugBtn.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 1000;
-      padding: 10px;
-      background: #f59e0b;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 12px;
-    `;
-    debugBtn.onclick = debugAPI;
-    document.body.appendChild(debugBtn);
-  }
-}
-
-// Add a function to refresh posts
-function refreshPosts() {
-  console.log('Refreshing posts...');
-  loadPosts(currentPage);
-}
-
-// Add a function to refresh profile
-function refreshProfile() {
-  if (currentUser) {
-    console.log('Refreshing profile...');
-    loadProfile();
-  }
-}
-
-// Debug function to check posts data structure
-function debugPostsData(posts) {
-  console.log('=== Posts Debug Info ===');
-  console.log('Posts array:', posts);
-  
-  if (posts && posts.length > 0) {
-    console.log('First post structure:', posts[0]);
-    console.log('First post author:', posts[0].author);
-    console.log('First post title:', posts[0].title);
-    console.log('First post content:', posts[0].content);
-  }
-}
-
