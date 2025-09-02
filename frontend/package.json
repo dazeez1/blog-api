@@ -2,13 +2,12 @@
   "name": "bloghub-frontend",
   "version": "1.0.0",
   "description": "Modern frontend for BlogHub API",
-  "main": "index.html",
+  "main": "public/index.html",
   "scripts": {
-    "start": "npx http-server -p 8000 -c-1",
-    "dev": "npx http-server -p 8000 -c-1",
-    "serve": "npx http-server -p 8000 -c-1",
+    "start": "npx http-server public -p 8000 -c-1",
+    "dev": "npx http-server public -p 8000 -c-1",
     "build": "echo 'No build step needed for static frontend'",
-    "test": "echo 'No tests configured'"
+    "vercel-build": "echo 'Static site - no build required'"
   },
   "keywords": [
     "blog",
@@ -20,9 +19,6 @@
   ],
   "author": "BlogHub Team",
   "license": "ISC",
-  "devDependencies": {
-    "http-server": "^14.1.1"
-  },
   "engines": {
     "node": ">=14.0.0"
   }
