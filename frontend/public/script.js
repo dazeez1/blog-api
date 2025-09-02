@@ -293,19 +293,32 @@ function displayPagination(pagination) {
 
 // Post Detail and Actions
 async function showPostDetail(postId) {
+  console.log('showPostDetail called with postId:', postId);
+  if (!postId) {
+    console.error('showPostDetail: postId is undefined or null');
+    alert('Error: Post ID is missing');
+    return;
+  }
+  
   currentPostId = postId;
   try {
     const response = await fetch(`${API_BASE_URL}/posts/${postId}`);
     const data = await response.json();
+    console.log('Post detail response:', data);
 
     if (data.success) {
       const post = data.data || data.post || data;
+      console.log('Post object for display:', post);
       displayPostDetail(post);
       loadComments(postId);
       document.getElementById('postDetailModal').style.display = 'block';
+    } else {
+      console.error('Failed to load post detail:', data);
+      alert('Failed to load post: ' + (data.message || 'Unknown error'));
     }
   } catch (error) {
     console.error('Failed to load post:', error);
+    alert('Failed to load post: ' + error.message);
   }
 }
 
@@ -313,18 +326,37 @@ function displayPostDetail(post) {
   const content = document.getElementById('postDetailContent');
   if (!content) return;
 
-  const isAuthor = currentUser && post.author?._id === currentUser._id;
+  console.log('Displaying post detail:', post);
+  console.log('Current user:', currentUser);
+
+  // Handle different post object structures
+  const postId = post._id || post.id;
+  const postTitle = post.title || 'Untitled';
+  const postContent = post.content || 'No content';
+  const postAuthor = post.author || {};
+  const postTags = post.tags || [];
+  const postDate = post.createdAt || post.created_at || 'Unknown date';
+
+  // Check if current user is the author
+  const currentUserId = currentUser?._id || currentUser?.id;
+  const authorId = postAuthor._id || postAuthor.id;
+  const isAuthor = currentUser && currentUserId === authorId;
+
+  console.log('Post ID:', postId);
+  console.log('Current User ID:', currentUserId);
+  console.log('Author ID:', authorId);
+  console.log('Is Author:', isAuthor);
 
   content.innerHTML = `
-    <h2>${post.title || 'Untitled'}</h2>
-    <p>${post.content || 'No content'}</p>
+    <h2>${postTitle}</h2>
+    <p>${postContent}</p>
     <div class="post-meta">
-      <span>By: ${post.author?.name || post.author?.email || 'Unknown'}</span>
-      <span>${formatDate(post.createdAt)}</span>
+      <span>By: ${postAuthor.name || postAuthor.email || 'Unknown'}</span>
+      <span>${formatDate(postDate)}</span>
     </div>
     ${
-      post.tags && post.tags.length > 0
-        ? `<div class="tags">${post.tags
+      postTags.length > 0
+        ? `<div class="tags">${postTags
             .map(tag => `<span class="tag">${tag}</span>`)
             .join('')}</div>`
         : ''
@@ -333,8 +365,8 @@ function displayPostDetail(post) {
       isAuthor
         ? `
       <div class="post-actions">
-        <button onclick="showPostModal('${post._id}')" class="btn btn-primary">Edit</button>
-        <button onclick="deletePost('${post._id}')" class="btn btn-danger">Delete</button>
+        <button onclick="showPostModal('${postId}')" class="btn btn-primary">Edit</button>
+        <button onclick="deletePost('${postId}')" class="btn btn-danger">Delete</button>
       </div>
     `
         : ''
@@ -391,6 +423,8 @@ async function loadPostForEditing(postId) {
 
     if (data.success) {
       const post = data.data || data.post || data;
+      console.log('Post object for editing:', post);
+      
       document.getElementById('postTitle').value = post.title || '';
       document.getElementById('postContent').value = post.content || '';
       document.getElementById('postTags').value = post.tags
@@ -401,9 +435,13 @@ async function loadPostForEditing(postId) {
         content: post.content,
         tags: post.tags,
       });
+    } else {
+      console.error('Failed to load post for editing:', data);
+      alert('Failed to load post for editing: ' + (data.message || 'Unknown error'));
     }
   } catch (error) {
     console.error('Failed to load post for editing:', error);
+    alert('Failed to load post for editing: ' + error.message);
   }
 }
 
@@ -418,6 +456,22 @@ async function handlePostSubmit(e) {
     return;
   }
 
+  // Client-side validation matching backend requirements
+  if (title.length < 3) {
+    alert('Title must be at least 3 characters long');
+    return;
+  }
+
+  if (title.length > 200) {
+    alert('Title must be no more than 200 characters long');
+    return;
+  }
+
+  if (content.length < 10) {
+    alert('Content must be at least 10 characters long');
+    return;
+  }
+
   const tags = tagsInput
     ? tagsInput
         .split(',')
@@ -426,11 +480,18 @@ async function handlePostSubmit(e) {
     : [];
   const postData = { title, content, tags };
 
+  console.log('Submitting post data:', postData);
+  console.log('Current user:', currentUser);
+  console.log('Token:', localStorage.getItem('token'));
+
   try {
     const method = currentPostId ? 'PUT' : 'POST';
     const url = currentPostId
       ? `${API_BASE_URL}/posts/${currentPostId}`
       : `${API_BASE_URL}/posts`;
+
+    console.log('Making request to:', url);
+    console.log('Method:', method);
 
     const response = await fetch(url, {
       method,
@@ -442,13 +503,20 @@ async function handlePostSubmit(e) {
     });
 
     const data = await response.json();
+    console.log('Post submission response:', data);
 
     if (data.success) {
       alert(currentPostId ? 'Post updated!' : 'Post created!');
       closePostModal();
       loadPosts(currentPage);
     } else {
-      alert(data.message || 'Operation failed');
+      console.error('Post operation failed:', data);
+      if (data.errors && Array.isArray(data.errors)) {
+        const errorMessages = data.errors.map(err => `${err.field}: ${err.message}`).join('\n');
+        alert(`Validation failed:\n${errorMessages}`);
+      } else {
+        alert(data.message || 'Operation failed');
+      }
     }
   } catch (error) {
     console.error('Post operation failed:', error);
