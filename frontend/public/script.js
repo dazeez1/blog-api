@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initializeApp();
   setupEventListeners();
   checkAuthStatus();
+  addDebugButton(); // Add debug button on load
 });
 
 function initializeApp() {
@@ -257,15 +258,22 @@ async function loadPosts(page = 1) {
     const response = await fetch(
       `${API_BASE_URL}/posts?page=${page}&limit=${postsPerPage}`
     );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
 
     if (data.success) {
       displayPosts(data.data.posts);
       displayPagination(data.data.pagination);
     } else {
-      showNotification('Failed to load posts', 'error');
+      console.error('Posts API error:', data);
+      showNotification(data.message || 'Failed to load posts', 'error');
     }
   } catch (error) {
+    console.error('Posts loading error:', error);
     showNotification('An error occurred while loading posts', 'error');
   } finally {
     hideLoading();
@@ -461,13 +469,31 @@ async function handlePostSubmit(e) {
   e.preventDefault();
   showLoading();
 
-  const title = document.getElementById('postTitle').value;
-  const content = document.getElementById('postContent').value;
-  const tags = document
-    .getElementById('postTags')
-    .value.split(',')
-    .map(tag => tag.trim())
-    .filter(tag => tag.length > 0);
+  const title = document.getElementById('postTitle').value.trim();
+  const content = document.getElementById('postContent').value.trim();
+  const tagsInput = document.getElementById('postTags').value;
+  
+  // Better tags handling - ensure it's always an array
+  let tags = [];
+  if (tagsInput && tagsInput.trim()) {
+    tags = tagsInput
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0 && tag.length <= 20);
+  }
+
+  // Validation
+  if (!title || title.length < 3 || title.length > 200) {
+    showNotification('Title must be between 3 and 200 characters', 'error');
+    hideLoading();
+    return;
+  }
+
+  if (!content || content.length < 10) {
+    showNotification('Content must be at least 10 characters long', 'error');
+    hideLoading();
+    return;
+  }
 
   const postData = { title, content, tags };
   const method = currentPostId ? 'PUT' : 'POST';
@@ -487,7 +513,7 @@ async function handlePostSubmit(e) {
 
     const data = await response.json();
 
-    if (data.success) {
+    if (response.ok && data.success) {
       showNotification(
         currentPostId
           ? 'Post updated successfully!'
@@ -497,9 +523,13 @@ async function handlePostSubmit(e) {
       closePostModal();
       loadPosts(currentPage);
     } else {
-      showNotification(data.message || 'Operation failed', 'error');
+      // Better error handling
+      const errorMessage = data.message || data.error || `HTTP ${response.status}: ${response.statusText}`;
+      showNotification(errorMessage, 'error');
+      console.error('Post operation failed:', { status: response.status, data });
     }
   } catch (error) {
+    console.error('Post operation error:', error);
     showNotification('An error occurred. Please try again.', 'error');
   } finally {
     hideLoading();
@@ -897,4 +927,71 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Debug and Testing Functions
+function debugAPI() {
+  console.log('=== BlogHub API Debug Info ===');
+  console.log('API Base URL:', API_BASE_URL);
+  console.log('Current User:', currentUser);
+  console.log('Token:', localStorage.getItem('token') ? 'Present' : 'Missing');
+  console.log('User Data:', localStorage.getItem('user'));
+  
+  // Test API endpoints
+  testAPIEndpoints();
+}
+
+async function testAPIEndpoints() {
+  console.log('=== Testing API Endpoints ===');
+  
+  try {
+    // Test health endpoint
+    const healthResponse = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
+    console.log('Health Check:', healthResponse.status, healthResponse.statusText);
+    
+    // Test posts endpoint
+    const postsResponse = await fetch(`${API_BASE_URL}/posts?page=1&limit=5`);
+    console.log('Posts Endpoint:', postsResponse.status, postsResponse.statusText);
+    
+    if (postsResponse.ok) {
+      const postsData = await postsResponse.json();
+      console.log('Posts Data:', postsData);
+    }
+    
+    // Test auth endpoint if logged in
+    if (currentUser && localStorage.getItem('token')) {
+      const authResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      console.log('Auth Endpoint:', authResponse.status, authResponse.statusText);
+    }
+    
+  } catch (error) {
+    console.error('API Test Error:', error);
+  }
+}
+
+// Add debug button to the page
+function addDebugButton() {
+  if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+    const debugBtn = document.createElement('button');
+    debugBtn.textContent = '🐛 Debug API';
+    debugBtn.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      padding: 10px;
+      background: #f59e0b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+    `;
+    debugBtn.onclick = debugAPI;
+    document.body.appendChild(debugBtn);
+  }
+}
 
