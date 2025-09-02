@@ -434,38 +434,83 @@ async function loadComments(postId) {
   try {
     const response = await fetch(`${API_BASE_URL}/comments/posts/${postId}/comments`);
     const data = await response.json();
+    
+    console.log('Comments API response:', data);
 
     if (data.success) {
-      const comments = data.data?.comments || data.comments || data.data || [];
+      // Handle different possible response structures
+      let comments = [];
+      if (Array.isArray(data.data)) {
+        comments = data.data;
+      } else if (Array.isArray(data.data?.comments)) {
+        comments = data.data.comments;
+      } else if (Array.isArray(data.comments)) {
+        comments = data.comments;
+      } else if (Array.isArray(data.data?.items)) {
+        comments = data.data.items;
+      } else if (Array.isArray(data.items)) {
+        comments = data.items;
+      } else {
+        console.warn('Unexpected comments response structure:', data);
+        comments = [];
+      }
+      
+      console.log('Extracted comments:', comments);
       displayComments(comments);
+    } else {
+      console.warn('Comments API returned success: false:', data);
+      displayComments([]);
     }
   } catch (error) {
     console.error('Failed to load comments:', error);
+    displayComments([]);
   }
 }
 
 function displayComments(comments) {
   const container = document.getElementById('commentsContainer');
-  if (!container) return;
+  if (!container) {
+    console.warn('Comments container not found');
+    return;
+  }
 
-  if (!comments || comments.length === 0) {
+  // Ensure comments is an array
+  if (!Array.isArray(comments)) {
+    console.warn('Comments is not an array:', comments);
+    comments = [];
+  }
+
+  if (comments.length === 0) {
     container.innerHTML = '<p>No comments yet.</p>';
     return;
   }
 
-  container.innerHTML = comments.map(comment => `
-    <div class="comment">
-      <p>${comment.content}</p>
-      <div class="comment-meta">
-        <span>By: ${comment.author?.name || comment.author?.email || 'Unknown'}</span>
-        <span>${formatDate(comment.createdAt)}</span>
-        ${currentUser && comment.author?._id === currentUser._id ? `
-          <button onclick="editComment('${comment._id}')">Edit</button>
-          <button onclick="deleteComment('${comment._id}')">Delete</button>
-        ` : ''}
-      </div>
-    </div>
-  `).join('');
+  try {
+    container.innerHTML = comments.map(comment => {
+      // Ensure comment has required properties
+      if (!comment || typeof comment !== 'object') {
+        console.warn('Invalid comment object:', comment);
+        return '';
+      }
+      
+      return `
+        <div class="comment">
+          <p>${comment.content || 'No content'}</p>
+          <div class="comment-meta">
+            <span>By: ${comment.author?.name || comment.author?.email || 'Unknown'}</span>
+            <span>${formatDate(comment.createdAt)}</span>
+            ${currentUser && comment.author?._id === currentUser._id ? `
+              <button onclick="editComment('${comment._id}')">Edit</button>
+              <button onclick="deleteComment('${comment._id}')">Delete</button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).filter(html => html !== '').join('');
+  } catch (error) {
+    console.error('Error rendering comments:', error);
+    container.innerHTML = '<p>Error loading comments.</p>';
+  }
 }
 
 async function handleCommentSubmit(e) {
