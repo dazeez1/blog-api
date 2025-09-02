@@ -7,10 +7,12 @@ let currentPage = 1;
 const postsPerPage = 6;
 
 // API Configuration
-const API_BASE_URL = (window.BlogHubConfig && window.BlogHubConfig.API_BASE_URL) || 'https://blog-api-es4r.onrender.com/api';
+const API_BASE_URL =
+  (window.BlogHubConfig && window.BlogHubConfig.API_BASE_URL) ||
+  'https://blog-api-es4r.onrender.com/api';
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   console.log('DOM loaded, setting up event listeners...');
   setupEventListeners();
   initializeApp();
@@ -19,11 +21,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // Set up all event listeners
 function setupEventListeners() {
   console.log('Setting up event listeners...');
-  
+
   // Auth button
   const authBtn = document.getElementById('authBtn');
   if (authBtn) {
-    authBtn.addEventListener('click', function() {
+    authBtn.addEventListener('click', function () {
       if (currentUser) {
         logout();
       } else {
@@ -36,7 +38,7 @@ function setupEventListeners() {
   // Create post button
   const createPostBtn = document.getElementById('createPostBtn');
   if (createPostBtn) {
-    createPostBtn.addEventListener('click', function() {
+    createPostBtn.addEventListener('click', function () {
       showPostModal();
     });
     console.log('Create post button listener set up');
@@ -65,7 +67,7 @@ function setupEventListeners() {
 
   // Modal close buttons
   document.querySelectorAll('.close').forEach(closeBtn => {
-    closeBtn.addEventListener('click', function() {
+    closeBtn.addEventListener('click', function () {
       const modal = this.closest('.modal');
       if (modal) modal.style.display = 'none';
     });
@@ -73,7 +75,7 @@ function setupEventListeners() {
 
   // Auth tabs
   document.querySelectorAll('.tab-btn').forEach(tab => {
-    tab.addEventListener('click', function() {
+    tab.addEventListener('click', function () {
       const tabName = this.getAttribute('data-tab');
       switchAuthTab(tabName);
     });
@@ -81,7 +83,7 @@ function setupEventListeners() {
 
   // Navigation links
   document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', function(e) {
+    link.addEventListener('click', function (e) {
       e.preventDefault();
       const section = this.getAttribute('data-section');
       showSection(section);
@@ -111,7 +113,7 @@ function initializeApp() {
 function updateUIForAuthenticatedUser() {
   const authBtn = document.getElementById('authBtn');
   const createPostBtn = document.getElementById('createPostBtn');
-  
+
   if (authBtn) authBtn.textContent = 'Logout';
   if (createPostBtn) createPostBtn.style.display = 'inline-flex';
 }
@@ -119,7 +121,7 @@ function updateUIForAuthenticatedUser() {
 function updateUIForUnauthenticatedUser() {
   const authBtn = document.getElementById('authBtn');
   const createPostBtn = document.getElementById('createPostBtn');
-  
+
   if (authBtn) authBtn.textContent = 'Login';
   if (createPostBtn) createPostBtn.style.display = 'none';
 }
@@ -161,9 +163,9 @@ async function handleLogin(e) {
 
     const data = await response.json();
     if (data.success) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      currentUser = data.user;
+      localStorage.setItem('token', data.data.token);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+      currentUser = data.data.user;
       updateUIForAuthenticatedUser();
       loadPosts();
       loadProfile();
@@ -216,11 +218,19 @@ function logout() {
 async function loadPosts(page = 1) {
   currentPage = page;
   try {
-    const response = await fetch(`${API_BASE_URL}/posts?page=${page}&limit=${postsPerPage}`);
+    const response = await fetch(
+      `${API_BASE_URL}/posts?page=${page}&limit=${postsPerPage}`
+    );
     const data = await response.json();
 
     if (data.success) {
-      const posts = data.data?.items || data.data?.posts || data.items || data.posts || data.data || [];
+      const posts =
+        data.data?.items ||
+        data.data?.posts ||
+        data.items ||
+        data.posts ||
+        data.data ||
+        [];
       displayPosts(posts);
       displayPagination(data.data?.pagination || data.pagination || {});
     }
@@ -238,7 +248,9 @@ function displayPosts(posts) {
     return;
   }
 
-  postsGrid.innerHTML = posts.map(post => `
+  postsGrid.innerHTML = posts
+    .map(
+      post => `
     <div class="post-card" onclick="showPostDetail('${post._id}')">
       <h3>${post.title || 'Untitled'}</h3>
       <p>${post.content || 'No content'}</p>
@@ -246,12 +258,17 @@ function displayPosts(posts) {
         <span>By: ${post.author?.name || post.author?.email || 'Unknown'}</span>
         <span>${formatDate(post.createdAt)}</span>
       </div>
-      ${post.tags && post.tags.length > 0 ? 
-        `<div class="tags">${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : 
-        ''
+      ${
+        post.tags && post.tags.length > 0
+          ? `<div class="tags">${post.tags
+              .map(tag => `<span class="tag">${tag}</span>`)
+              .join('')}</div>`
+          : ''
       }
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
 function displayPagination(pagination) {
@@ -261,11 +278,15 @@ function displayPagination(pagination) {
   const { currentPage, totalPages, hasNextPage, hasPrevPage } = pagination;
   let html = '';
 
-  if (hasPrevPage) html += `<button onclick="loadPosts(${currentPage - 1})">Previous</button>`;
+  if (hasPrevPage)
+    html += `<button onclick="loadPosts(${currentPage - 1})">Previous</button>`;
   for (let i = 1; i <= totalPages; i++) {
-    html += `<button ${i === currentPage ? 'class="active"' : ''} onclick="loadPosts(${i})">${i}</button>`;
+    html += `<button ${
+      i === currentPage ? 'class="active"' : ''
+    } onclick="loadPosts(${i})">${i}</button>`;
   }
-  if (hasNextPage) html += `<button onclick="loadPosts(${currentPage + 1})">Next</button>`;
+  if (hasNextPage)
+    html += `<button onclick="loadPosts(${currentPage + 1})">Next</button>`;
 
   paginationContainer.innerHTML = html;
 }
@@ -293,7 +314,7 @@ function displayPostDetail(post) {
   if (!content) return;
 
   const isAuthor = currentUser && post.author?._id === currentUser._id;
-  
+
   content.innerHTML = `
     <h2>${post.title || 'Untitled'}</h2>
     <p>${post.content || 'No content'}</p>
@@ -301,24 +322,37 @@ function displayPostDetail(post) {
       <span>By: ${post.author?.name || post.author?.email || 'Unknown'}</span>
       <span>${formatDate(post.createdAt)}</span>
     </div>
-    ${post.tags && post.tags.length > 0 ? 
-      `<div class="tags">${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : 
-      ''
+    ${
+      post.tags && post.tags.length > 0
+        ? `<div class="tags">${post.tags
+            .map(tag => `<span class="tag">${tag}</span>`)
+            .join('')}</div>`
+        : ''
     }
-    ${isAuthor ? `
+    ${
+      isAuthor
+        ? `
       <div class="post-actions">
         <button onclick="showPostModal('${post._id}')" class="btn btn-primary">Edit</button>
         <button onclick="deletePost('${post._id}')" class="btn btn-danger">Delete</button>
       </div>
-    ` : ''}
+    `
+        : ''
+    }
     <div class="comments-section">
       <h3>Comments</h3>
-      ${currentUser ? `
-        <form onsubmit="handleCommentSubmit(event)">
-          <textarea placeholder="Write a comment..." required></textarea>
-          <button type="submit">Post Comment</button>
+      ${
+        currentUser
+          ? `
+        <form onsubmit="handleCommentSubmit(event)" class="comment-form">
+          <div class="form-group">
+            <textarea id="commentTextarea" placeholder="Write a comment..." required rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Post Comment</button>
         </form>
-      ` : ''}
+      `
+          : ''
+      }
       <div id="commentsContainer"></div>
     </div>
   `;
@@ -359,8 +393,14 @@ async function loadPostForEditing(postId) {
       const post = data.data || data.post || data;
       document.getElementById('postTitle').value = post.title || '';
       document.getElementById('postContent').value = post.content || '';
-      document.getElementById('postTags').value = post.tags ? post.tags.join(', ') : '';
-      console.log('Post form populated with:', { title: post.title, content: post.content, tags: post.tags });
+      document.getElementById('postTags').value = post.tags
+        ? post.tags.join(', ')
+        : '';
+      console.log('Post form populated with:', {
+        title: post.title,
+        content: post.content,
+        tags: post.tags,
+      });
     }
   } catch (error) {
     console.error('Failed to load post for editing:', error);
@@ -378,12 +418,19 @@ async function handlePostSubmit(e) {
     return;
   }
 
-  const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+  const tags = tagsInput
+    ? tagsInput
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag)
+    : [];
   const postData = { title, content, tags };
 
   try {
     const method = currentPostId ? 'PUT' : 'POST';
-    const url = currentPostId ? `${API_BASE_URL}/posts/${currentPostId}` : `${API_BASE_URL}/posts`;
+    const url = currentPostId
+      ? `${API_BASE_URL}/posts/${currentPostId}`
+      : `${API_BASE_URL}/posts`;
 
     const response = await fetch(url, {
       method,
@@ -436,9 +483,11 @@ async function deletePost(postId) {
 // Comments
 async function loadComments(postId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/comments/posts/${postId}/comments`);
+    const response = await fetch(
+      `${API_BASE_URL}/comments/posts/${postId}/comments`
+    );
     const data = await response.json();
-    
+
     console.log('Comments API response:', data);
 
     if (data.success) {
@@ -458,7 +507,7 @@ async function loadComments(postId) {
         console.warn('Unexpected comments response structure:', data);
         comments = [];
       }
-      
+
       console.log('Extracted comments:', comments);
       displayComments(comments);
     } else {
@@ -490,27 +539,36 @@ function displayComments(comments) {
   }
 
   try {
-    container.innerHTML = comments.map(comment => {
-      // Ensure comment has required properties
-      if (!comment || typeof comment !== 'object') {
-        console.warn('Invalid comment object:', comment);
-        return '';
-      }
-      
-      return `
+    container.innerHTML = comments
+      .map(comment => {
+        // Ensure comment has required properties
+        if (!comment || typeof comment !== 'object') {
+          console.warn('Invalid comment object:', comment);
+          return '';
+        }
+
+        return `
         <div class="comment">
           <p>${comment.content || 'No content'}</p>
           <div class="comment-meta">
-            <span>By: ${comment.author?.name || comment.author?.email || 'Unknown'}</span>
+            <span>By: ${
+              comment.author?.name || comment.author?.email || 'Unknown'
+            }</span>
             <span>${formatDate(comment.createdAt)}</span>
-            ${currentUser && comment.author?._id === currentUser._id ? `
+            ${
+              currentUser && comment.author?._id === currentUser._id
+                ? `
               <button onclick="editComment('${comment._id}')">Edit</button>
               <button onclick="deleteComment('${comment._id}')">Delete</button>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
         </div>
       `;
-    }).filter(html => html !== '').join('');
+      })
+      .filter(html => html !== '')
+      .join('');
   } catch (error) {
     console.error('Error rendering comments:', error);
     container.innerHTML = '<p>Error loading comments.</p>';
@@ -520,7 +578,7 @@ function displayComments(comments) {
 async function handleCommentSubmit(e) {
   e.preventDefault();
   console.log('handleCommentSubmit called');
-  const textarea = e.target.querySelector('textarea');
+  const textarea = document.getElementById('commentTextarea');
   const content = textarea.value.trim();
 
   if (!content) return;
@@ -528,14 +586,17 @@ async function handleCommentSubmit(e) {
   console.log('Submitting comment:', { content, postId: currentPostId });
 
   try {
-    const response = await fetch(`${API_BASE_URL}/comments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({ content, postId: currentPostId }),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/comments/posts/${currentPostId}/comments`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ content }),
+      }
+    );
 
     const data = await response.json();
     console.log('Comment response:', data);
@@ -608,7 +669,7 @@ async function loadProfile() {
 
   try {
     displayProfile(currentUser);
-    
+
     const response = await fetch(`${API_BASE_URL}/posts/my-posts`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
@@ -629,9 +690,16 @@ function displayProfile(user) {
   if (!profileInfo) return;
 
   profileInfo.innerHTML = `
-    <h3>Profile</h3>
-    <p><strong>Name:</strong> ${user.name || 'Not provided'}</p>
-    <p><strong>Email:</strong> ${user.email || 'Not provided'}</p>
+    <div class="profile-card">
+      <h3>Profile Information</h3>
+      <div class="profile-details">
+        <p><strong>Name:</strong> ${user.name || 'Not provided'}</p>
+        <p><strong>Email:</strong> ${user.email || 'Not provided'}</p>
+        <p><strong>User ID:</strong> ${
+          user.id || user._id || 'Not available'
+        }</p>
+      </div>
+    </div>
   `;
 }
 
@@ -640,20 +708,36 @@ function displayMyPosts(posts) {
   if (!myPosts) return;
 
   if (!posts || posts.length === 0) {
-    myPosts.innerHTML = '<h3>My Posts</h3><p>No posts yet.</p>';
+    myPosts.innerHTML =
+      '<div class="my-posts-section"><h3>My Posts</h3><p>No posts yet. Create your first post!</p></div>';
     return;
   }
 
   myPosts.innerHTML = `
-    <h3>My Posts</h3>
-    <div class="posts-grid">
-      ${posts.map(post => `
-        <div class="post-card" onclick="showPostDetail('${post._id}')">
-          <h4>${post.title || 'Untitled'}</h4>
-          <p>${post.content || 'No content'}</p>
-          <span>${formatDate(post.createdAt)}</span>
-        </div>
-      `).join('')}
+    <div class="my-posts-section">
+      <h3>My Posts (${posts.length})</h3>
+      <div class="posts-grid">
+        ${posts
+          .map(
+            post => `
+          <div class="post-card" onclick="showPostDetail('${post._id}')">
+            <h4>${post.title || 'Untitled'}</h4>
+            <p>${
+              post.content
+                ? post.content.length > 100
+                  ? post.content.substring(0, 100) + '...'
+                  : post.content
+                : 'No content'
+            }</p>
+            <div class="post-meta">
+              <span class="date">${formatDate(post.createdAt)}</span>
+              <span class="views">${post.viewCount || 0} views</span>
+            </div>
+          </div>
+        `
+          )
+          .join('')}
+      </div>
     </div>
   `;
 }
@@ -669,7 +753,8 @@ function showSection(sectionName) {
   const sections = ['home', 'posts', 'profile'];
   sections.forEach(section => {
     const element = document.getElementById(section);
-    if (element) element.style.display = section === sectionName ? 'block' : 'none';
+    if (element)
+      element.style.display = section === sectionName ? 'block' : 'none';
   });
 
   if (sectionName === 'home') loadPosts();
@@ -679,4 +764,9 @@ function showSection(sectionName) {
 // Test function
 function testClick() {
   alert('JavaScript is working!');
+}
+
+// Refresh posts function
+function refreshPosts() {
+  loadPosts(currentPage);
 }
