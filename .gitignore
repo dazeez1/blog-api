@@ -120,6 +120,8 @@ out/
 # Test outputs
 coverage/
 .nyc_output/
+backend/coverage/
+**/coverage/
 
 # Local development
 *.local
