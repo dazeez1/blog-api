@@ -324,7 +324,7 @@ function displayPosts(posts) {
                 <div class="post-meta">
                     <div class="post-author">
                         <i class="fas fa-user"></i>
-                        <span>${post.author.name}</span>
+                        <span>${post.author?.name || post.author?.email || 'Unknown Author'}</span>
                     </div>
                     <span>${formatDate(post.createdAt)}</span>
                 </div>
@@ -404,7 +404,7 @@ function displayPostDetail(post) {
             <div class="post-meta">
                 <div class="post-author">
                     <i class="fas fa-user"></i>
-                    <span>${post.author.name}</span>
+                    <span>${post.author?.name || post.author?.email || 'Unknown Author'}</span>
                 </div>
                 <span>${formatDate(post.createdAt)}</span>
             </div>
@@ -783,15 +783,16 @@ function displayProfile(user) {
         <h3>Profile Information</h3>
         <div class="profile-field">
             <label>Name</label>
-            <input type="text" id="profileName" value="${user.name}" />
+            <span class="profile-value">${user.name || 'Not provided'}</span>
         </div>
         <div class="profile-field">
             <label>Email</label>
-            <input type="email" id="profileEmail" value="${user.email}" />
+            <span class="profile-value">${user.email || 'Not provided'}</span>
         </div>
-        <button class="btn btn-primary" onclick="updateProfile()">
-            <i class="fas fa-save"></i> Update Profile
-        </button>
+        <div class="profile-field">
+            <label>Member Since</label>
+            <span class="profile-value">${formatDate(user.createdAt)}</span>
+        </div>
     `;
 }
 
@@ -835,33 +836,7 @@ function displayMyPosts(posts) {
     `;
 }
 
-async function updateProfile() {
-  const name = document.getElementById('profileName').value;
-  const email = document.getElementById('profileEmail').value;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({ name, email }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      showNotification('Profile updated successfully!', 'success');
-      currentUser = data.data;
-      localStorage.setItem('user', JSON.stringify(data.data));
-    } else {
-      showNotification(data.message || 'Failed to update profile', 'error');
-    }
-  } catch (error) {
-    showNotification('An error occurred. Please try again.', 'error');
-  }
-}
+// Profile update functionality removed - profile is now read-only
 
 // Utility Functions
 function formatDate(dateString) {
