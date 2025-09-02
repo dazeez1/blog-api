@@ -7,6 +7,13 @@ services:
     rootDir: backend
     buildCommand: npm install
     startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: https://blog-api-1-fkdo.onrender.com
 
   # Frontend Static Site
   - type: web
@@ -16,3 +23,6 @@ services:
     rootDir: frontend
     buildCommand: echo "Static site - no build needed"
     staticPublishPath: public
+    envVars:
+      - key: API_URL
+        value: https://blog-api-es4r.onrender.com

@@ -2,6 +2,13 @@
 
 A feature-rich RESTful API for a modern blogging platform with authentication, content management, and engagement features.
 
+## 🚀 **Live Application**
+
+- **Frontend**: [https://blog-api-1-fkdo.onrender.com](https://blog-api-1-fkdo.onrender.com)
+- **Backend API**: [https://blog-api-es4r.onrender.com](https://blog-api-es4r.onrender.com)
+- **API Documentation**: [https://blog-api-es4r.onrender.com/api-docs](https://blog-api-es4r.onrender.com/api-docs)
+- **Health Check**: [https://blog-api-es4r.onrender.com/health](https://blog-api-es4r.onrender.com/health)
+
 ## Description
 
 The Blog API powers blogging platforms with comprehensive content management capabilities. It supports rich text posts, user engagement features, and secure authentication for a complete blogging experience.
@@ -91,6 +98,7 @@ npm run dev
 The API documentation is available via Swagger UI at:
 
 - **Local**: `http://localhost:5000/api-docs`
+- **Production**: [https://blog-api-es4r.onrender.com/api-docs](https://blog-api-es4r.onrender.com/api-docs)
 - **Features**:
   - Interactive API testing
   - Request/response examples

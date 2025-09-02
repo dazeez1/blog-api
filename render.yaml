@@ -17,7 +17,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: CORS_ORIGIN
-        value: https://bloghub-frontend.onrender.com
+        value: https://blog-api-1-fkdo.onrender.com
 
   # Frontend Static Site
   - type: web
@@ -29,4 +29,4 @@ services:
     staticPublishPath: public
     envVars:
       - key: API_URL
-        value: https://bloghub-backend.onrender.com
+        value: https://blog-api-es4r.onrender.com
