@@ -279,7 +279,7 @@ async function loadPosts(page = 1) {
 
     if (data.success) {
       // Handle different possible response structures
-      const posts = data.data?.posts || data.posts || data.data || [];
+      const posts = data.data?.items || data.data?.posts || data.items || data.posts || data.data || [];
       const pagination = data.data?.pagination || data.pagination || {};
       
       console.log('Posts API response:', data);
@@ -378,7 +378,9 @@ async function showPostDetail(postId) {
     const data = await response.json();
 
     if (data.success) {
-      displayPostDetail(data.data);
+      // Handle different possible response structures
+      const post = data.data || data.post || data;
+      displayPostDetail(post);
       loadComments(postId);
       postDetailModal.style.display = 'block';
     } else {
@@ -601,7 +603,9 @@ async function loadComments(postId) {
     const data = await response.json();
 
     if (data.success) {
-      displayComments(data.data.comments);
+      // Handle different possible response structures
+      const comments = data.data?.comments || data.comments || data.data || [];
+      displayComments(comments);
     }
   } catch (error) {
     console.error('Failed to load comments:', error);
