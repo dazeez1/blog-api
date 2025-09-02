@@ -419,7 +419,7 @@ function displayPostDetail(post) {
                 : ''
             }
             ${
-              currentUser && post.author._id === currentUser._id
+              currentUser && post.author?._id === currentUser._id
                 ? `
                 <div class="post-actions">
                     <button class="btn btn-primary" onclick="showPostModal('${post._id}')">
@@ -772,7 +772,9 @@ async function loadProfile() {
     }
 
     if (postsData.success) {
-      displayMyPosts(postsData.data.posts);
+      // Handle different possible response structures for my posts
+      const myPosts = postsData.data?.posts || postsData.data?.items || postsData.data || [];
+      displayMyPosts(myPosts);
     }
   } catch (error) {
     console.error('Profile loading error:', error);
@@ -804,8 +806,9 @@ function displayProfile(user) {
 
 function displayMyPosts(posts) {
   const myPosts = document.getElementById('myPosts');
+  if (!myPosts) return;
 
-  if (posts.length === 0) {
+  if (!posts || posts.length === 0) {
     myPosts.innerHTML =
       "<h3>My Posts</h3><p>You haven't created any posts yet.</p>";
     return;
