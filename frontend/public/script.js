@@ -627,7 +627,7 @@ function displayComments(comments) {
       comment => `
         <div class="comment">
             <div class="comment-header">
-                <span class="comment-author">${comment.author.name}</span>
+                <span class="comment-author">${comment.author?.name || comment.author?.email || 'Unknown User'}</span>
                 <span class="comment-date">${formatDate(comment.createdAt)}</span>
             </div>
             <div class="comment-content">${comment.content}</div>
@@ -776,7 +776,7 @@ async function loadProfile() {
     }
   } catch (error) {
     console.error('Profile loading error:', error);
-    showNotification('Failed to load profile', 'error');
+    // Remove error popup - just log to console
   } finally {
     hideLoading();
   }
