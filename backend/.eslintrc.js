@@ -4,8 +4,7 @@ module.exports = {
     es2021: true,
     jest: true,
   },
-  extends: ['eslint:recommended', 'prettier'],
-  plugins: ['prettier'],
+  extends: ['eslint:recommended'],
   parserOptions: {
     ecmaVersion: 12,
     sourceType: 'module',
@@ -30,9 +29,6 @@ module.exports = {
     // Security
     'no-var': 'error',
     'prefer-const': 'error',
-
-    // Code style - let Prettier handle formatting
-    'prettier/prettier': 'error',
 
     // Node.js specific
     'no-process-exit': 'warn', // Allow process.exit for critical errors

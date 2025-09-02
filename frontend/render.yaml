@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: bloghub-frontend
+    env: static
+    plan: free
+    buildCommand: echo "Static site - no build needed"
+    staticPublishPath: ./public
+    envVars:
+      - key: API_URL
+        value: https://bloghub-backend.onrender.com

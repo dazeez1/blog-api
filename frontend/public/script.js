@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = window.BlogHubConfig.API_BASE_URL;
 let currentUser = null;
 let currentPostId = null;
 let currentPage = 1;
