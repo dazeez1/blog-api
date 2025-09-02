@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: bloghub-backend
+    name: blog-api-es4r
     env: node
     plan: free
     buildCommand: npm install
@@ -15,4 +15,4 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: CORS_ORIGIN
-        value: https://bloghub-frontend.onrender.com
+        value: "*"

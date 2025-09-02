@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path'); // Added for SPA routing
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -35,8 +36,15 @@ app.use(
         'http://127.0.0.1:3000',
         'http://127.0.0.1:5000',
         'http://127.0.0.1:8000',
+        'https://bloghub-frontend.onrender.com',
+        'https://bloghub-frontend.vercel.app',
         process.env.CORS_ORIGIN,
       ].filter(Boolean);
+
+      // In production, allow all origins if CORS_ORIGIN is "*"
+      if (process.env.CORS_ORIGIN === '*') {
+        return callback(null, true);
+      }
 
       if (
         allowedOrigins.includes(origin) ||
@@ -52,6 +60,19 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
+
+// Serve static files from the frontend public directory
+app.use(express.static(path.join(__dirname, '../frontend/public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html');
+    }
+  }
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -129,8 +150,22 @@ app.use(
   })
 );
 
-// 404 handler
-app.use('*', (req, res) => {
+// Serve frontend for SPA routing (must be before 404 handler)
+app.get('*', (req, res) => {
+  // Don't serve frontend for API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({
+      success: false,
+      message: `Route ${req.originalUrl} not found`,
+    });
+  }
+  
+  // Serve the frontend index.html for all other routes
+  res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+});
+
+// 404 handler (this will now only catch API routes)
+app.use('/api/*', (req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,
