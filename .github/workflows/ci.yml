@@ -28,19 +28,29 @@ jobs:
         run: npm ci
 
       - name: Install backend dependencies
-        run: cd backend && npm ci
+        run: |
+          cd backend
+          npm ci
 
       - name: Run ESLint
-        run: cd backend && npm run lint
+        run: |
+          cd backend
+          npm run lint
 
       - name: Clean up coverage files
-        run: cd backend && rm -rf coverage
+        run: |
+          cd backend
+          rm -rf coverage
 
       - name: Check code formatting
-        run: cd backend && npm run format:check
+        run: |
+          cd backend
+          npm run format:check
 
       - name: Run tests
-        run: cd backend && npm test
+        run: |
+          cd backend
+          npm test
         env:
           NODE_ENV: test
           MONGODB_URI: mongodb://localhost:27017/blogdb_test
@@ -48,10 +58,14 @@ jobs:
           JWT_EXPIRES_IN: 1h
 
       - name: Run security audit
-        run: cd backend && npm audit --audit-level=moderate
+        run: |
+          cd backend
+          npm audit --audit-level=moderate
 
       - name: Build verification
-        run: cd backend && npm run build:check
+        run: |
+          cd backend
+          npm run build:check
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -81,13 +95,19 @@ jobs:
         run: npm ci
 
       - name: Install backend dependencies
-        run: cd backend && npm ci
+        run: |
+          cd backend
+          npm ci
 
       - name: Run security scan
-        run: cd backend && npm audit --audit-level=high
+        run: |
+          cd backend
+          npm audit --audit-level=high
 
       - name: Check for known vulnerabilities
-        run: cd backend && npm audit --audit-level=critical
+        run: |
+          cd backend
+          npm audit --audit-level=critical
 
   code-quality:
     runs-on: ubuntu-latest
@@ -107,12 +127,17 @@ jobs:
         run: npm ci
 
       - name: Install backend dependencies
-        run: cd backend && npm ci
+        run: |
+          cd backend
+          npm ci
 
       - name: Clean up coverage files
-        run: cd backend && rm -rf coverage
+        run: |
+          cd backend
+          rm -rf coverage
 
       - name: Run code quality checks
         run: |
-          cd backend && npm run lint
-          cd backend && npm run format:check
+          cd backend
+          npm run lint
+          npm run format:check
