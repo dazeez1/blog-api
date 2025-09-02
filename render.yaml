@@ -1,8 +1,10 @@
 services:
+  # Backend API Service
   - type: web
     name: bloghub-backend
     env: node
     plan: free
+    rootDir: backend
     buildCommand: npm install
     startCommand: node server.js
     envVars:
@@ -16,3 +18,15 @@ services:
         sync: false
       - key: CORS_ORIGIN
         value: https://bloghub-frontend.onrender.com
+
+  # Frontend Static Site
+  - type: web
+    name: bloghub-frontend
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: echo "Static site - no build needed"
+    staticPublishPath: ./public
+    envVars:
+      - key: API_URL
+        value: https://bloghub-backend.onrender.com
