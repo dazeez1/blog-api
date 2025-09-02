@@ -242,11 +242,23 @@ function checkAuthStatus() {
 function updateUIForAuthenticatedUser() {
   authBtn.textContent = 'Logout';
   createPostBtn.style.display = 'inline-flex';
+  
+  // Show refresh button for authenticated users
+  const refreshPostsBtn = document.getElementById('refreshPostsBtn');
+  if (refreshPostsBtn) {
+    refreshPostsBtn.style.display = 'inline-flex';
+  }
 }
 
 function updateUIForUnauthenticatedUser() {
   authBtn.textContent = 'Login';
   createPostBtn.style.display = 'none';
+  
+  // Hide refresh button for unauthenticated users
+  const refreshPostsBtn = document.getElementById('refreshPostsBtn');
+  if (refreshPostsBtn) {
+    refreshPostsBtn.style.display = 'none';
+  }
 }
 
 // Posts
@@ -266,8 +278,21 @@ async function loadPosts(page = 1) {
     const data = await response.json();
 
     if (data.success) {
-      displayPosts(data.data.posts);
-      displayPagination(data.data.pagination);
+      // Handle different possible response structures
+      const posts = data.data?.posts || data.posts || data.data || [];
+      const pagination = data.data?.pagination || data.pagination || {};
+      
+      console.log('Posts API response:', data);
+      console.log('Posts data:', posts);
+      console.log('Pagination data:', pagination);
+      
+      if (Array.isArray(posts)) {
+        displayPosts(posts);
+        displayPagination(pagination);
+      } else {
+        console.error('Posts is not an array:', posts);
+        showNotification('Invalid posts data received', 'error');
+      }
     } else {
       console.error('Posts API error:', data);
       showNotification(data.message || 'Failed to load posts', 'error');
@@ -992,6 +1017,20 @@ function addDebugButton() {
     `;
     debugBtn.onclick = debugAPI;
     document.body.appendChild(debugBtn);
+  }
+}
+
+// Add a function to refresh posts
+function refreshPosts() {
+  console.log('Refreshing posts...');
+  loadPosts(currentPage);
+}
+
+// Add a function to refresh profile
+function refreshProfile() {
+  if (currentUser) {
+    console.log('Refreshing profile...');
+    loadProfile();
   }
 }
 

@@ -50,13 +50,23 @@
       <section id="posts" class="section">
         <div class="section-header">
           <h2>Blog Posts</h2>
-          <button
-            id="createPostBtn"
-            class="btn btn-primary"
-            style="display: none"
-          >
-            <i class="fas fa-plus"></i> Create Post
-          </button>
+          <div class="section-actions">
+            <button
+              id="refreshPostsBtn"
+              class="btn btn-secondary"
+              onclick="refreshPosts()"
+              style="display: none"
+            >
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button
+              id="createPostBtn"
+              class="btn btn-primary"
+              style="display: none"
+            >
+              <i class="fas fa-plus"></i> Create Post
+            </button>
+          </div>
         </div>
 
         <div class="posts-container">
