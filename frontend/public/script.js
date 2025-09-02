@@ -336,26 +336,24 @@ function displayPagination(pagination) {
   paginationContainer.innerHTML = paginationHTML;
 }
 
+// Post Detail Functions
 async function showPostDetail(postId) {
+  currentPostId = postId; // Set the current post ID for comments
   showLoading();
-  currentPostId = postId;
-
   try {
     const response = await fetch(`${API_BASE_URL}/posts/${postId}`);
     const data = await response.json();
 
     if (data.success) {
-      const post = data.data;
-      displayPostDetail(post);
-      postDetailModal.style.display = 'block';
-
-      // Load comments
+      displayPostDetail(data.data);
       loadComments(postId);
+      postDetailModal.style.display = 'block';
     } else {
-      showNotification('Failed to load post', 'error');
+      showNotification('Failed to load post details', 'error');
     }
   } catch (error) {
-    showNotification('An error occurred while loading the post', 'error');
+    console.error('Post detail loading error:', error);
+    showNotification('Failed to load post details', 'error');
   } finally {
     hideLoading();
   }
@@ -873,7 +871,6 @@ function showNotification(message, type = 'info') {
     }, 300);
   }, 5000);
 }
-
 // Add CSS animations for notifications
 const style = document.createElement('style');
 style.textContent = `
@@ -900,3 +897,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
