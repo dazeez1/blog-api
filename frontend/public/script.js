@@ -1,4 +1,4 @@
-// BlogHub Frontend - Working Version
+// BlogHub Frontend - Complete Working Version
 console.log('Script.js loaded');
 
 let currentUser = null;
@@ -326,6 +326,7 @@ function displayPostDetail(post) {
 
 // Post Management
 function showPostModal(postId = null) {
+  console.log('showPostModal called with postId:', postId);
   currentPostId = postId;
   const modal = document.getElementById('postModal');
   const title = document.getElementById('postModalTitle');
@@ -348,15 +349,18 @@ function closePostModal() {
 }
 
 async function loadPostForEditing(postId) {
+  console.log('loadPostForEditing called with postId:', postId);
   try {
     const response = await fetch(`${API_BASE_URL}/posts/${postId}`);
     const data = await response.json();
+    console.log('Post data for editing:', data);
 
     if (data.success) {
       const post = data.data || data.post || data;
       document.getElementById('postTitle').value = post.title || '';
       document.getElementById('postContent').value = post.content || '';
       document.getElementById('postTags').value = post.tags ? post.tags.join(', ') : '';
+      console.log('Post form populated with:', { title: post.title, content: post.content, tags: post.tags });
     }
   } catch (error) {
     console.error('Failed to load post for editing:', error);
@@ -515,10 +519,13 @@ function displayComments(comments) {
 
 async function handleCommentSubmit(e) {
   e.preventDefault();
+  console.log('handleCommentSubmit called');
   const textarea = e.target.querySelector('textarea');
   const content = textarea.value.trim();
 
   if (!content) return;
+
+  console.log('Submitting comment:', { content, postId: currentPostId });
 
   try {
     const response = await fetch(`${API_BASE_URL}/comments`, {
@@ -531,10 +538,12 @@ async function handleCommentSubmit(e) {
     });
 
     const data = await response.json();
+    console.log('Comment response:', data);
 
     if (data.success) {
       textarea.value = '';
       loadComments(currentPostId);
+      alert('Comment posted successfully!');
     } else {
       alert(data.message || 'Comment failed');
     }
