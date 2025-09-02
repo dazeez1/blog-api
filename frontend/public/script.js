@@ -22,24 +22,36 @@ const createPostBtn = document.getElementById('createPostBtn');
 const loadingSpinner = document.getElementById('loadingSpinner');
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function () {
-  initializeApp();
-  setupEventListeners();
-  checkAuthStatus();
-  addDebugButton(); // Add debug button on load
-});
-
 function initializeApp() {
   // Check if user is already logged in
   const token = localStorage.getItem('token');
-  if (token) {
-    currentUser = JSON.parse(localStorage.getItem('user'));
+  const user = localStorage.getItem('user');
+
+  if (token && user) {
+    currentUser = JSON.parse(user);
     updateUIForAuthenticatedUser();
+    loadPosts();
+    loadProfile();
+  } else {
+    updateUIForUnauthenticatedUser();
   }
 
-  // Load initial posts
-  loadPosts();
+  // Add event listeners
+  const postForm = document.getElementById('postForm');
+  if (postForm) {
+    postForm.addEventListener('submit', handlePostSubmit);
+  }
+  
+  // Add debug button for development
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    addDebugButton();
+  }
 }
+
+// Add the DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function () {
+  initializeApp();
+});
 
 function setupEventListeners() {
   // Navigation
@@ -778,7 +790,7 @@ async function loadProfile() {
     }
   } catch (error) {
     console.error('Profile loading error:', error);
-    // Remove error popup - just log to console
+    // No error popup - just log to console
   } finally {
     hideLoading();
   }
