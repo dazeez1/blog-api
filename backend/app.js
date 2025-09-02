@@ -62,17 +62,19 @@ app.use(
 );
 
 // Serve static files from the frontend public directory
-app.use(express.static(path.join(__dirname, '../frontend/public'), {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    } else if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    } else if (filePath.endsWith('.html')) {
-      res.setHeader('Content-Type', 'text/html');
-    }
-  }
-}));
+app.use(
+  express.static(path.join(__dirname, '../frontend/public'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (filePath.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      } else if (filePath.endsWith('.html')) {
+        res.setHeader('Content-Type', 'text/html');
+      }
+    },
+  })
+);
 
 // Rate limiting
 const limiter = rateLimit({
@@ -159,7 +161,7 @@ app.get('*', (req, res) => {
       message: `Route ${req.originalUrl} not found`,
     });
   }
-  
+
   // Serve the frontend index.html for all other routes
   res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
 });
