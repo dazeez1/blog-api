@@ -13,7 +13,7 @@ const options = {
       {
         url:
           process.env.SWAGGER_SERVER_URL ||
-          'https://blog-api-3pxs.onrender.com',
+          'https://blog-api-es4r.onrender.com',
         description: 'Production server',
       },
       {
