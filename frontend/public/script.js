@@ -289,6 +289,7 @@ async function loadPosts(page = 1) {
       if (Array.isArray(posts)) {
         displayPosts(posts);
         displayPagination(pagination);
+        debugPostsData(posts); // Add debug call here
       } else {
         console.error('Posts is not an array:', posts);
         showNotification('Invalid posts data received', 'error');
@@ -1035,6 +1036,19 @@ function refreshProfile() {
   if (currentUser) {
     console.log('Refreshing profile...');
     loadProfile();
+  }
+}
+
+// Debug function to check posts data structure
+function debugPostsData(posts) {
+  console.log('=== Posts Debug Info ===');
+  console.log('Posts array:', posts);
+  
+  if (posts && posts.length > 0) {
+    console.log('First post structure:', posts[0]);
+    console.log('First post author:', posts[0].author);
+    console.log('First post title:', posts[0].title);
+    console.log('First post content:', posts[0].content);
   }
 }
 
