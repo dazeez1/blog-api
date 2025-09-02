@@ -48,3 +48,4 @@ coverage/
 
 # Database seeding scripts
 seed-database.js
+test-api.js
