@@ -1,5 +1,13 @@
-// Configuration
-const API_BASE_URL = window.BlogHubConfig.API_BASE_URL;
+// Configuration with fallback
+const API_BASE_URL = (window.BlogHubConfig && window.BlogHubConfig.API_BASE_URL) || 'https://blog-api-es4r.onrender.com/api';
+
+// Fallback configuration if config.js fails to load
+if (!window.BlogHubConfig) {
+  window.BlogHubConfig = {
+    API_BASE_URL: API_BASE_URL
+  };
+}
+
 let currentUser = null;
 let currentPostId = null;
 let currentPage = 1;

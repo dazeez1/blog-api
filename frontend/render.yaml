@@ -7,4 +7,4 @@ services:
     staticPublishPath: public
     envVars:
       - key: API_URL
-        value: https://bloghub-backend.onrender.com
+        value: https://blog-api-es4r.onrender.com
